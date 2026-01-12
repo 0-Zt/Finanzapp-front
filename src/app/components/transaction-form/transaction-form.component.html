@@ -1,0 +1,92 @@
+@if (isOpen) {
+  <section class="glass-card">
+    <header class="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <h2 class="text-xl font-semibold text-slate-900 dark:text-white">
+          {{ mode === 'edit' ? 'Editar transacción' : 'Nueva transacción' }}
+        </h2>
+        <p class="text-sm text-slate-600 dark:text-slate-300">
+          {{ mode === 'edit' ? 'Actualiza los datos del movimiento.' : 'Registra un gasto o ingreso diario.' }}
+        </p>
+      </div>
+      <button type="button" class="quiet-button" (click)="cancel()">Cerrar</button>
+    </header>
+
+    <form class="mt-6 grid gap-4" (ngSubmit)="submit()">
+      <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+        Descripción
+        <input
+          type="text"
+          name="description"
+          required
+          [(ngModel)]="formState.description"
+          class="input-field"
+          placeholder="Ej. Supermercado"
+        />
+      </label>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+          Monto
+          <input
+            type="number"
+            name="amount"
+            required
+            min="0"
+            step="0.01"
+            [(ngModel)]="formState.amount"
+            class="input-field"
+            placeholder="0.00"
+          />
+        </label>
+
+        <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+          Fecha
+          <input
+            type="date"
+            name="date"
+            required
+            [(ngModel)]="formState.date"
+            class="input-field"
+          />
+        </label>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+          Categoria
+          <select
+            name="categoryId"
+            required
+            [(ngModel)]="formState.categoryId"
+            class="select-field"
+          >
+            @for (category of categories; track category.id) {
+              <option [ngValue]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+          Tipo
+          <select
+            name="type"
+            required
+            [(ngModel)]="formState.type"
+            class="select-field"
+          >
+            <option value="expense">Gasto</option>
+            <option value="income">Ingreso</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="flex flex-wrap gap-3 pt-2">
+        <button type="submit" class="primary-button">
+          {{ mode === 'edit' ? 'Guardar cambios' : 'Guardar movimiento' }}
+        </button>
+        <button type="button" class="ghost-button" (click)="cancel()">Cancelar</button>
+      </div>
+    </form>
+  </section>
+}

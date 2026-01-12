@@ -1,0 +1,133 @@
+<section class="page-shell">
+  <app-dashboard-hero
+    [title]="title"
+    [lastUpdated]="lastUpdated"
+    [cards]="cards"
+    [isLoading]="isLoading"
+    (addTransaction)="onAddTransaction()"
+    (viewReports)="onViewReports()"
+  ></app-dashboard-hero>
+
+  @if (errorMessage) {
+    <div class="rounded-2xl border border-rose-200/70 bg-rose-50/80 px-5 py-4 text-sm text-rose-700 shadow-sm dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
+      {{ errorMessage }}
+    </div>
+  }
+
+  <app-transaction-form
+    [categories]="categories"
+    [userId]="userId"
+    [isOpen]="isFormOpen"
+    [mode]="formMode"
+    [transaction]="editingTransaction"
+    (createTransaction)="onCreateTransaction($event)"
+    (updateTransaction)="onUpdateTransaction($event)"
+    (close)="onCloseTransactionForm()"
+  ></app-transaction-form>
+
+  <section id="reports" class="grid gap-8 lg:grid-cols-[1.25fr_0.75fr]">
+    @if (isLoading) {
+      <!-- Skeleton para el grafico -->
+      <div class="glass-card">
+        <div class="flex flex-wrap items-start justify-between gap-6">
+          <div class="flex flex-col gap-2">
+            <div class="h-6 w-48 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+            <div class="h-4 w-64 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+          </div>
+          <div class="flex gap-2">
+            <div class="h-8 w-20 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700"></div>
+            <div class="h-8 w-20 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700"></div>
+          </div>
+        </div>
+        <div class="mt-8 flex items-end gap-5">
+          @for (i of [1,2,3,4,5,6,7,8,9,10,11,12]; track i) {
+            <div class="flex h-44 w-full flex-col items-center gap-3">
+              <div class="flex h-full w-full items-end gap-1 rounded-2xl bg-slate-100 p-2 dark:bg-slate-800">
+                <div class="w-1/2 animate-pulse rounded-t-xl bg-slate-200 dark:bg-slate-700" [style.height.%]="30 + (i * 5)"></div>
+                <div class="w-1/2 animate-pulse rounded-t-xl bg-slate-200 dark:bg-slate-700" [style.height.%]="20 + (i * 4)"></div>
+              </div>
+              <div class="h-3 w-8 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Skeleton para transacciones -->
+      <div class="glass-card">
+        <div class="flex flex-wrap items-start justify-between gap-6">
+          <div class="flex flex-col gap-2">
+            <div class="h-6 w-40 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+            <div class="h-4 w-56 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+          </div>
+        </div>
+        <div class="mt-6 flex flex-col gap-4">
+          @for (i of [1,2,3,4,5,6]; track i) {
+            <app-skeleton-transaction></app-skeleton-transaction>
+          }
+        </div>
+      </div>
+    } @else {
+      <app-monthly-performance-chart
+        [data]="monthlyPerformance"
+        [title]="reportPeriod === 'monthly' ? 'Comportamiento mensual' : 'Comportamiento anual'"
+        [description]="
+          reportPeriod === 'monthly'
+            ? 'Comparativa de ingresos y gastos en los últimos 12 meses.'
+            : 'Comparativa anual de ingresos y gastos.'
+        "
+        [period]="reportPeriod"
+        (periodChange)="onReportPeriodChange($event)"
+      ></app-monthly-performance-chart>
+
+      <app-transactions-card
+        [transactions]="transactions"
+        [categories]="categories"
+        [filters]="transactionFilters"
+        [monthOptions]="monthOptions"
+        [hasMore]="hasMoreTransactions"
+        (filtersChange)="onFiltersChange($event)"
+        (loadMore)="onLoadMoreTransactions()"
+        (editTransaction)="onEditTransaction($event)"
+        (deleteTransaction)="onDeleteTransaction($event)"
+      ></app-transactions-card>
+    }
+  </section>
+
+  <section class="grid gap-8">
+    @if (isLoading) {
+      <!-- Skeleton para categorias -->
+      <div class="glass-card">
+        <div class="flex flex-wrap items-start justify-between gap-6">
+          <div class="flex flex-col gap-2">
+            <div class="h-6 w-40 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+            <div class="h-4 w-56 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+          </div>
+        </div>
+        <div class="mt-6 grid gap-6 sm:grid-cols-[200px_1fr]">
+          <div class="mx-auto h-48 w-48 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700"></div>
+          <div class="flex flex-col gap-3">
+            @for (i of [1,2,3,4,5]; track i) {
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="h-3 w-3 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                  <div class="h-4 w-24 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+                </div>
+                <div class="h-4 w-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    } @else {
+      <app-category-breakdown
+        [items]="categoryBreakdown"
+        [title]="reportPeriod === 'monthly' ? 'Categorias del mes' : 'Categorias del ano'"
+        [description]="
+          reportPeriod === 'monthly'
+            ? 'Distribución de gastos del mes actual.'
+            : 'Distribución de gastos del año actual.'
+        "
+      ></app-category-breakdown>
+    }
+  </section>
+</section>

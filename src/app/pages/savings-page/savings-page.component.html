@@ -1,0 +1,130 @@
+<section class="page-shell">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h1 class="text-3xl font-semibold text-slate-900 dark:text-white">Ahorro e inversion</h1>
+      <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+        Registra compras de ETF, aportes y revisa recomendaciones.
+      </p>
+    </div>
+  </header>
+
+  @if (isLoading) {
+    <div class="rounded-2xl border border-slate-200/70 bg-white/70 px-5 py-4 text-sm text-slate-600 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/50 dark:text-slate-200">
+      Cargando informacion de ahorro...
+    </div>
+  }
+
+  @if (errorMessage) {
+    <div class="rounded-2xl border border-rose-200/70 bg-rose-50/80 px-5 py-4 text-sm text-rose-700 shadow-sm dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
+      {{ errorMessage }}
+    </div>
+  }
+
+  @if (!savingsCategory) {
+    <div class="rounded-2xl border border-amber-200/70 bg-amber-50/80 px-5 py-4 text-sm text-amber-700 shadow-sm dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200">
+      Crea una categoria llamada Ahorro o Inversion para habilitar este modulo.
+    </div>
+  }
+
+  <section class="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+    <article class="glass-card">
+      <header class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Registrar ahorro</h2>
+          <p class="text-sm text-slate-600 dark:text-slate-300">
+            Guarda compras de ETF o aportes mensuales.
+          </p>
+        </div>
+      </header>
+
+      <form class="mt-6 grid gap-4" (ngSubmit)="onSubmit()">
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            Tipo
+            <select name="type" class="select-field" [(ngModel)]="formState.type">
+              <option value="buy">Compra ETF</option>
+              <option value="deposit">Aporte</option>
+            </select>
+          </label>
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            ETF
+            <select name="etf" class="select-field" [(ngModel)]="formState.etf">
+              <option value="">Selecciona ETF</option>
+              @for (etf of etfOptions; track etf) {
+                <option [ngValue]="etf">{{ etf }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            Monto
+            <input
+              type="number"
+              name="amount"
+              min="0"
+              step="0.01"
+              [(ngModel)]="formState.amount"
+              class="input-field"
+              placeholder="0.00"
+            />
+          </label>
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            Fecha
+            <input
+              type="date"
+              name="date"
+              [(ngModel)]="formState.date"
+              class="input-field"
+            />
+          </label>
+        </div>
+
+        <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+          Nota
+          <input
+            type="text"
+            name="note"
+            [(ngModel)]="formState.note"
+            class="input-field"
+            placeholder="Ej. Aporte mensual"
+          />
+        </label>
+
+        <button type="submit" class="primary-button">Guardar ahorro</button>
+      </form>
+    </article>
+
+    <article class="glass-card">
+      <header class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Recomendaciones</h2>
+          <p class="text-sm text-slate-600 dark:text-slate-300">
+            Ideas para mejorar tu estrategia de ahorro.
+          </p>
+        </div>
+      </header>
+      <ul class="mt-6 flex flex-col gap-3 text-sm text-slate-600 dark:text-slate-300">
+        <li class="list-card text-sm text-slate-600 dark:text-slate-300">
+          Revisa la diversificacion de tu portafolio cada trimestre.
+        </li>
+        <li class="list-card text-sm text-slate-600 dark:text-slate-300">
+          Considera aportes automaticos para mantener constancia.
+        </li>
+        <li class="list-card text-sm text-slate-600 dark:text-slate-300">
+          Separa un ETF de bajo costo para largo plazo.
+        </li>
+      </ul>
+    </article>
+  </section>
+
+  <app-transactions-card
+    [transactions]="savingsTransactions"
+    [categories]="categories"
+    [showFilters]="false"
+    [title]="'Movimientos de ahorro'"
+    [description]="'Historial de aportes e inversiones.'"
+    [actionLabel]="'Ver todo'"
+  ></app-transactions-card>
+</section>

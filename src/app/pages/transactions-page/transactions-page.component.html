@@ -1,0 +1,53 @@
+<section class="page-shell">
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h1 class="text-3xl font-semibold text-slate-900 dark:text-white">Transacciones</h1>
+      <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+        Consulta todos los movimientos, aplica filtros y agrega nuevos registros.
+      </p>
+    </div>
+    <div class="flex flex-wrap items-center gap-3">
+      <button type="button" class="primary-button" (click)="onAddTransaction()">
+        Nueva transacción
+      </button>
+    </div>
+  </header>
+
+  @if (isLoading) {
+    <div class="rounded-2xl border border-slate-200/70 bg-white/70 px-5 py-4 text-sm text-slate-600 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/50 dark:text-slate-200">
+      Cargando transacciones...
+    </div>
+  }
+
+  @if (errorMessage) {
+    <div class="rounded-2xl border border-rose-200/70 bg-rose-50/80 px-5 py-4 text-sm text-rose-700 shadow-sm dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
+      {{ errorMessage }}
+    </div>
+  }
+
+  <app-transaction-form
+    [categories]="categories"
+    [userId]="userId"
+    [isOpen]="isFormOpen"
+    [mode]="formMode"
+    [transaction]="editingTransaction"
+    (createTransaction)="onCreateTransaction($event)"
+    (updateTransaction)="onUpdateTransaction($event)"
+    (close)="onCloseTransactionForm()"
+  ></app-transaction-form>
+
+  <app-transactions-card
+    [transactions]="transactions"
+    [categories]="categories"
+    [filters]="transactionFilters"
+    [monthOptions]="monthOptions"
+    [hasMore]="hasMoreTransactions"
+    [title]="'Listado completo'"
+    [description]="'Filtros avanzados para analizar gastos e ingresos.'"
+    [actionLabel]="'Exportar'"
+    (filtersChange)="onFiltersChange($event)"
+    (loadMore)="onLoadMoreTransactions()"
+    (editTransaction)="onEditTransaction($event)"
+    (deleteTransaction)="onDeleteTransaction($event)"
+  ></app-transactions-card>
+</section>

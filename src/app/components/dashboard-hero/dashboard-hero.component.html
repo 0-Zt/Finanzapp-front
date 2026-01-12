@@ -1,0 +1,60 @@
+<section class="flex flex-col gap-10">
+  <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+    <div class="flex flex-col gap-6">
+      <span class="accent-pill">
+        {{ badgeLabel }}
+      </span>
+
+      <h1 class="text-4xl leading-tight text-slate-900 sm:text-[2.6rem] sm:leading-[1.08] dark:text-white">
+        Gestiona {{ title }} con claridad
+      </h1>
+
+      <p class="max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-300">
+        {{ description }}
+      </p>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <button type="button" class="primary-button" (click)="onAddTransaction()">Agregar transacción</button>
+        <button type="button" class="ghost-button" (click)="onViewReports()">Ver reportes</button>
+      </div>
+    </div>
+
+    <aside class="glass-card flex flex-col gap-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">
+          Accesos rápidos
+        </h3>
+        <span class="badge-soft">Hoy</span>
+      </div>
+      <div class="grid gap-3">
+        <a routerLink="/transactions" class="quick-link">
+          <span>Movimientos</span>
+          <span class="text-xs font-medium text-slate-400 dark:text-slate-400">Todo el historial</span>
+        </a>
+        <a routerLink="/goals" class="quick-link">
+          <span>Metas financieras</span>
+          <span class="text-xs font-medium text-slate-400 dark:text-slate-400">Planifica objetivos</span>
+        </a>
+        <a routerLink="/savings" class="quick-link">
+          <span>Ahorro e inversion</span>
+          <span class="text-xs font-medium text-slate-400 dark:text-slate-400">ETF y aportes</span>
+        </a>
+      </div>
+      <div class="rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3 text-xs text-slate-500 dark:border-slate-800/70 dark:bg-slate-900/60 dark:text-slate-300">
+        Consejo: separa gastos fijos de variables para visualizar tendencias con claridad.
+      </div>
+    </aside>
+  </div>
+
+  @if (lastUpdated) {
+    <div class="flex flex-wrap items-center justify-between gap-4 text-sm">
+      <div>
+        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Resumen rápido</h2>
+        <p class="text-sm text-slate-500 dark:text-slate-300">Actualizado {{ lastUpdated }}</p>
+      </div>
+      <button type="button" class="quiet-button">{{ exportLabel }}</button>
+    </div>
+  }
+
+  <app-summary-cards-row [cards]="cards" [isLoading]="isLoading"></app-summary-cards-row>
+</section>
