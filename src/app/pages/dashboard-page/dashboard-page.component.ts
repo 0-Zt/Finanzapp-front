@@ -295,6 +295,7 @@ export class DashboardPageComponent implements OnInit {
         id: String(transaction.id),
         title: transaction.description,
         date: this.formatTransactionDate(transaction.transaction_date),
+        rawDate: transaction.transaction_date,
         account: transaction.account ?? 'Cuenta principal',
         amount: this.formatAmount(transaction.amount),
         category: categoryName,

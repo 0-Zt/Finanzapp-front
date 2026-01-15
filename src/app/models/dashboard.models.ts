@@ -28,6 +28,7 @@ export interface Transaction {
   id: string;
   title: string;
   date: string;
+  rawDate: string;
   account: string;
   amount: string;
   category: string;
@@ -51,4 +52,28 @@ export interface CategoryBreakdownItem {
   value: number;
   percent: number;
   color: string;
+}
+
+export type TransactionGroupKey = 'today' | 'yesterday' | 'thisWeek' | 'thisMonth' | 'older';
+
+export interface TransactionGroup {
+  key: TransactionGroupKey;
+  label: string;
+  transactions: Transaction[];
+  totalIncome: number;
+  totalExpense: number;
+}
+
+export interface TransactionsSummary {
+  totalIncome: number;
+  totalExpense: number;
+  balance: number;
+  transactionCount: number;
+}
+
+export interface PaginationState {
+  currentPage: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
 }

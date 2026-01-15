@@ -115,6 +115,233 @@
   .list-card {
     @apply rounded-2xl border border-slate-200/70 bg-white/80 px-4 py-4 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 dark:border-slate-800/70 dark:bg-slate-900/60 dark:hover:border-brand-500/40;
   }
+
+  /* Transaction List Grouped Styles */
+  .transaction-groups {
+    @apply flex flex-col gap-6;
+  }
+
+  .transaction-group {
+    @apply flex flex-col gap-3;
+  }
+
+  .group-header {
+    @apply flex items-center justify-between px-1;
+  }
+
+  .group-title {
+    @apply text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400;
+  }
+
+  .group-stats {
+    @apply flex items-center gap-3 text-xs font-semibold;
+  }
+
+  .stat-income {
+    @apply text-emerald-600 dark:text-emerald-400;
+  }
+
+  .stat-expense {
+    @apply text-rose-600 dark:text-rose-400;
+  }
+
+  .transactions-list {
+    @apply flex flex-col gap-2;
+  }
+
+  .transaction-item {
+    @apply rounded-xl border border-slate-200/70 bg-white/90 transition-all duration-200
+           hover:border-brand-300 hover:shadow-md
+           dark:border-slate-800/70 dark:bg-slate-900/70 dark:hover:border-brand-500/50;
+  }
+
+  .transaction-content {
+    @apply flex items-center justify-between gap-3 p-3 sm:p-4;
+  }
+
+  .transaction-main {
+    @apply flex items-center gap-3 min-w-0 flex-1;
+  }
+
+  .transaction-icon {
+    @apply flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-xl
+           bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300;
+  }
+
+  .icon-fallback {
+    @apply text-sm font-bold;
+  }
+
+  .transaction-info {
+    @apply flex flex-col gap-0.5 min-w-0;
+  }
+
+  .transaction-title {
+    @apply text-sm font-semibold text-slate-900 dark:text-white truncate;
+  }
+
+  .transaction-meta {
+    @apply flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 flex-wrap;
+  }
+
+  .category-badge {
+    @apply px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide
+           bg-slate-100 dark:bg-slate-800 hidden sm:inline-block;
+  }
+
+  .separator {
+    @apply text-slate-300 dark:text-slate-600 hidden sm:inline;
+  }
+
+  .transaction-end {
+    @apply flex items-center gap-2 sm:gap-4 flex-shrink-0;
+  }
+
+  .transaction-amount {
+    @apply text-sm sm:text-base font-bold whitespace-nowrap;
+  }
+
+  .transaction-actions {
+    @apply flex items-center gap-1 opacity-0 transition-opacity duration-200;
+  }
+
+  .transaction-item:hover .transaction-actions {
+    @apply opacity-100;
+  }
+
+  /* Show actions always on touch devices */
+  @media (hover: none) {
+    .transaction-actions {
+      @apply opacity-100;
+    }
+  }
+
+  .action-btn {
+    @apply p-1.5 rounded-lg transition-colors duration-150;
+  }
+
+  .action-btn.edit {
+    @apply text-slate-400 hover:text-brand-600 hover:bg-brand-50
+           dark:hover:text-brand-400 dark:hover:bg-brand-500/10;
+  }
+
+  .action-btn.delete {
+    @apply text-slate-400 hover:text-rose-600 hover:bg-rose-50
+           dark:hover:text-rose-400 dark:hover:bg-rose-500/10;
+  }
+
+  /* Empty State */
+  .empty-state {
+    @apply flex flex-col items-center justify-center py-12 px-4 text-center
+           rounded-2xl border border-dashed border-slate-200/70 bg-white/50
+           dark:border-slate-800/70 dark:bg-slate-900/30;
+  }
+
+  .empty-state-icon {
+    @apply w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800
+           flex items-center justify-center text-slate-400 dark:text-slate-500 mb-4;
+  }
+
+  .empty-state-text {
+    @apply text-base font-semibold text-slate-600 dark:text-slate-300;
+  }
+
+  .empty-state-hint {
+    @apply text-sm text-slate-500 dark:text-slate-400 mt-1;
+  }
+
+  /* Pagination */
+  .pagination {
+    @apply flex items-center justify-center gap-2 mt-8;
+  }
+
+  .pagination-btn {
+    @apply flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium
+           rounded-lg border border-slate-200/70 bg-white/80
+           text-slate-600 transition-all duration-200
+           hover:border-brand-300 hover:text-brand-600 hover:bg-brand-50
+           disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:border-slate-200/70 disabled:hover:bg-white/80 disabled:hover:text-slate-600
+           dark:border-slate-800/70 dark:bg-slate-900/70 dark:text-slate-300
+           dark:hover:border-brand-500/50 dark:hover:text-brand-400 dark:hover:bg-brand-500/10;
+  }
+
+  .pagination-btn.nav {
+    @apply px-3 sm:px-4;
+  }
+
+  .pagination-btn.page {
+    @apply w-10 h-10 px-0;
+  }
+
+  .pagination-btn.page.active {
+    @apply bg-brand-600 border-brand-600 text-white
+           dark:bg-brand-500 dark:border-brand-500;
+  }
+
+  .pagination-pages {
+    @apply hidden sm:flex items-center gap-1;
+  }
+
+  .pagination-ellipsis {
+    @apply px-2 text-slate-400 dark:text-slate-500;
+  }
+
+  .pagination-info {
+    @apply text-center text-xs text-slate-500 dark:text-slate-400 mt-3;
+  }
+
+  /* Summary Stats Card */
+  .summary-stats {
+    @apply grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4;
+  }
+
+  .stat-card {
+    @apply flex flex-col gap-1 p-4 rounded-xl
+           border border-slate-200/70 bg-white/80
+           dark:border-slate-800/70 dark:bg-slate-900/70;
+  }
+
+  .stat-card-label {
+    @apply text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400;
+  }
+
+  .stat-card-value {
+    @apply text-lg sm:text-xl font-bold text-slate-900 dark:text-white;
+  }
+
+  .stat-card-value.income {
+    @apply text-emerald-600 dark:text-emerald-400;
+  }
+
+  .stat-card-value.expense {
+    @apply text-rose-600 dark:text-rose-400;
+  }
+
+  .stat-card-value.balance {
+    @apply text-brand-600 dark:text-brand-400;
+  }
+
+  /* Filters Compact (Mobile) */
+  .filters-compact {
+    @apply flex flex-col gap-3;
+  }
+
+  .filters-row {
+    @apply flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:overflow-visible;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .filters-row::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filter-select {
+    @apply flex-shrink-0 min-w-0 rounded-full border border-slate-200/70 bg-white/90
+           px-3 py-2 text-xs font-medium text-slate-600
+           focus:border-brand-300 focus:ring-2 focus:ring-brand-200 focus:outline-none
+           dark:border-slate-800/70 dark:bg-slate-900/70 dark:text-slate-300;
+  }
 }
 
 @layer utilities {

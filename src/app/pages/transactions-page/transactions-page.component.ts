@@ -1,11 +1,16 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
   Transaction,
   TransactionFilters,
+  TransactionGroup,
+  TransactionGroupKey,
+  TransactionsSummary,
+  PaginationState,
 } from '../../models/dashboard.models';
-import { TransactionsCardComponent } from '../../components/transactions-card/transactions-card.component';
+import { TransactionListGroupedComponent } from '../../components/transaction-list-grouped/transaction-list-grouped.component';
 import { TransactionFormComponent } from '../../components/transaction-form/transaction-form.component';
 import { DashboardService } from '../../services/dashboard.service';
 import { TransactionsService } from '../../services/transactions.service';
@@ -20,12 +25,12 @@ import {
 
 const USER_ID = 1;
 const TRANSACTION_FETCH_LIMIT = 300;
-const TRANSACTION_PAGE_SIZE = 12;
+const TRANSACTION_PAGE_SIZE = 15;
 
 @Component({
   selector: 'app-transactions-page',
   standalone: true,
-  imports: [CommonModule, TransactionsCardComponent, TransactionFormComponent],
+  imports: [CommonModule, FormsModule, TransactionListGroupedComponent, TransactionFormComponent],
   templateUrl: './transactions-page.component.html',
 })
 export class TransactionsPageComponent implements OnInit {
@@ -44,8 +49,9 @@ export class TransactionsPageComponent implements OnInit {
   categories: ApiExpenseCategory[] = [];
   apiTransactions: ApiTransaction[] = [];
   filteredTransactions: ApiTransaction[] = [];
-  transactions: Transaction[] = [];
+  transactionGroups: TransactionGroup[] = [];
   monthOptions: Array<{ value: string; label: string }> = [];
+
   transactionFilters: TransactionFilters = {
     search: '',
     categoryId: 'all',
@@ -53,7 +59,20 @@ export class TransactionsPageComponent implements OnInit {
     month: 'all',
     status: 'all',
   };
-  visibleTransactionCount = TRANSACTION_PAGE_SIZE;
+
+  pagination: PaginationState = {
+    currentPage: 1,
+    pageSize: TRANSACTION_PAGE_SIZE,
+    totalItems: 0,
+    totalPages: 0,
+  };
+
+  summary: TransactionsSummary = {
+    totalIncome: 0,
+    totalExpense: 0,
+    balance: 0,
+    transactionCount: 0,
+  };
 
   private readonly currencyFormatter = new Intl.NumberFormat('es-CL', {
     style: 'currency',
@@ -63,12 +82,16 @@ export class TransactionsPageComponent implements OnInit {
 
   private readonly monthLabels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
+  private readonly groupLabels: Record<TransactionGroupKey, string> = {
+    today: 'Hoy',
+    yesterday: 'Ayer',
+    thisWeek: 'Esta semana',
+    thisMonth: 'Este mes',
+    older: 'Anteriores',
+  };
+
   ngOnInit(): void {
     this.loadTransactions();
-  }
-
-  get hasMoreTransactions(): boolean {
-    return this.visibleTransactionCount < this.filteredTransactions.length;
   }
 
   onAddTransaction(): void {
@@ -152,20 +175,45 @@ export class TransactionsPageComponent implements OnInit {
       });
   }
 
-  onFiltersChange(filters: TransactionFilters): void {
-    this.transactionFilters = filters;
+  onSearchChange(value: string): void {
+    this.transactionFilters = { ...this.transactionFilters, search: value };
     this.applyFilters();
   }
 
-  onLoadMoreTransactions(): void {
-    this.visibleTransactionCount += TRANSACTION_PAGE_SIZE;
+  onCategoryChange(value: number | 'all'): void {
+    this.transactionFilters = { ...this.transactionFilters, categoryId: value };
+    this.applyFilters();
+  }
+
+  onTypeChange(value: 'all' | 'income' | 'expense'): void {
+    this.transactionFilters = { ...this.transactionFilters, type: value };
+    this.applyFilters();
+  }
+
+  onMonthChange(value: string | 'all'): void {
+    this.transactionFilters = { ...this.transactionFilters, month: value };
+    this.applyFilters();
+  }
+
+  onStatusChange(value: 'all' | 'completed' | 'pending'): void {
+    this.transactionFilters = { ...this.transactionFilters, status: value };
+    this.applyFilters();
+  }
+
+  onPageChange(page: number): void {
+    this.pagination.currentPage = page;
     this.updateDisplayedTransactions();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   onCloseTransactionForm(): void {
     this.isFormOpen = false;
     this.editingTransaction = null;
     this.formMode = 'create';
+  }
+
+  formatCurrency(value: number): string {
+    return this.currencyFormatter.format(Math.abs(value));
   }
 
   private loadTransactions(): void {
@@ -233,13 +281,122 @@ export class TransactionsPageComponent implements OnInit {
     });
 
     this.filteredTransactions = filtered;
-    this.visibleTransactionCount = TRANSACTION_PAGE_SIZE;
+    this.updateSummary();
+    this.updatePagination();
     this.updateDisplayedTransactions();
   }
 
+  private updateSummary(): void {
+    let totalIncome = 0;
+    let totalExpense = 0;
+
+    for (const transaction of this.filteredTransactions) {
+      if (transaction.amount >= 0) {
+        totalIncome += transaction.amount;
+      } else {
+        totalExpense += Math.abs(transaction.amount);
+      }
+    }
+
+    this.summary = {
+      totalIncome,
+      totalExpense,
+      balance: totalIncome - totalExpense,
+      transactionCount: this.filteredTransactions.length,
+    };
+  }
+
+  private updatePagination(): void {
+    const totalItems = this.filteredTransactions.length;
+    const totalPages = Math.ceil(totalItems / TRANSACTION_PAGE_SIZE);
+
+    this.pagination = {
+      currentPage: 1,
+      pageSize: TRANSACTION_PAGE_SIZE,
+      totalItems,
+      totalPages,
+    };
+  }
+
   private updateDisplayedTransactions(): void {
-    const slice = this.filteredTransactions.slice(0, this.visibleTransactionCount);
-    this.transactions = this.mapTransactions(slice, this.categories);
+    const start = (this.pagination.currentPage - 1) * this.pagination.pageSize;
+    const end = start + this.pagination.pageSize;
+    const pageTransactions = this.filteredTransactions.slice(start, end);
+
+    const mapped = this.mapTransactions(pageTransactions, this.categories);
+    this.transactionGroups = this.groupTransactionsByDate(mapped);
+  }
+
+  private groupTransactionsByDate(transactions: Transaction[]): TransactionGroup[] {
+    const now = new Date();
+    const today = this.getDateKey(now);
+    const yesterday = this.getDateKey(new Date(now.getTime() - 86400000));
+    const weekStart = this.getWeekStart(now);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const groups: Map<TransactionGroupKey, Transaction[]> = new Map([
+      ['today', []],
+      ['yesterday', []],
+      ['thisWeek', []],
+      ['thisMonth', []],
+      ['older', []],
+    ]);
+
+    for (const transaction of transactions) {
+      const transactionDate = new Date(transaction.rawDate);
+      const dateKey = this.getDateKey(transactionDate);
+
+      if (dateKey === today) {
+        groups.get('today')!.push(transaction);
+      } else if (dateKey === yesterday) {
+        groups.get('yesterday')!.push(transaction);
+      } else if (transactionDate >= weekStart) {
+        groups.get('thisWeek')!.push(transaction);
+      } else if (transactionDate >= monthStart) {
+        groups.get('thisMonth')!.push(transaction);
+      } else {
+        groups.get('older')!.push(transaction);
+      }
+    }
+
+    const result: TransactionGroup[] = [];
+    const order: TransactionGroupKey[] = ['today', 'yesterday', 'thisWeek', 'thisMonth', 'older'];
+
+    for (const key of order) {
+      const groupTransactions = groups.get(key)!;
+      if (groupTransactions.length > 0) {
+        result.push({
+          key,
+          label: this.groupLabels[key],
+          transactions: groupTransactions,
+          totalIncome: this.calculateGroupTotal(groupTransactions, 'income'),
+          totalExpense: this.calculateGroupTotal(groupTransactions, 'expense'),
+        });
+      }
+    }
+
+    return result;
+  }
+
+  private calculateGroupTotal(transactions: Transaction[], type: 'income' | 'expense'): number {
+    return transactions
+      .filter((t) => t.type === type)
+      .reduce((sum, t) => sum + this.parseAmount(t.amount), 0);
+  }
+
+  private parseAmount(amount: string): number {
+    const cleaned = amount.replace(/[^\d,-]/g, '').replace('.', '');
+    return Math.abs(parseInt(cleaned, 10)) || 0;
+  }
+
+  private getDateKey(date: Date): string {
+    return `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+  }
+
+  private getWeekStart(date: Date): Date {
+    const day = date.getDay();
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(date.getFullYear(), date.getMonth(), diff);
   }
 
   private mapTransactions(transactions: ApiTransaction[], categories: ApiExpenseCategory[]): Transaction[] {
@@ -254,6 +411,7 @@ export class TransactionsPageComponent implements OnInit {
         id: String(transaction.id),
         title: transaction.description,
         date: this.formatTransactionDate(transaction.transaction_date),
+        rawDate: transaction.transaction_date,
         account: transaction.account ?? 'Cuenta principal',
         amount: this.formatAmount(transaction.amount),
         category: categoryName,
