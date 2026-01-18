@@ -1,0 +1,243 @@
+<section class="page-shell">
+  <header class="mb-8">
+    <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Mi perfil</h1>
+    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+      Gestiona tu informacion personal y gastos fijos
+    </p>
+  </header>
+
+  @if (isLoading) {
+    <div class="grid gap-8 lg:grid-cols-2">
+      <div class="glass-card animate-pulse">
+        <div class="h-6 w-40 rounded bg-slate-200 dark:bg-slate-700"></div>
+        <div class="mt-6 space-y-4">
+          <div class="h-10 rounded bg-slate-200 dark:bg-slate-700"></div>
+          <div class="h-10 rounded bg-slate-200 dark:bg-slate-700"></div>
+          <div class="h-10 rounded bg-slate-200 dark:bg-slate-700"></div>
+        </div>
+      </div>
+      <div class="glass-card animate-pulse">
+        <div class="h-6 w-40 rounded bg-slate-200 dark:bg-slate-700"></div>
+        <div class="mt-6 space-y-4">
+          <div class="h-16 rounded bg-slate-200 dark:bg-slate-700"></div>
+          <div class="h-16 rounded bg-slate-200 dark:bg-slate-700"></div>
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="grid gap-8 lg:grid-cols-2">
+      <!-- Profile Info -->
+      <div class="glass-card">
+        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Informacion personal</h2>
+        <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ userEmail }}</p>
+
+        <form [formGroup]="profileForm" (ngSubmit)="onSaveProfile()" class="mt-6 flex flex-col gap-5">
+          <div class="flex flex-col gap-2">
+            <label for="fullName" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Nombre completo
+            </label>
+            <input
+              type="text"
+              id="fullName"
+              formControlName="fullName"
+              placeholder="Tu nombre"
+              class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
+            />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label for="monthlySalary" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Sueldo mensual
+            </label>
+            <input
+              type="number"
+              id="monthlySalary"
+              formControlName="monthlySalary"
+              placeholder="0"
+              class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
+            />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label for="salaryDay" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Dia de pago (1-31)
+            </label>
+            <input
+              type="number"
+              id="salaryDay"
+              formControlName="salaryDay"
+              min="1"
+              max="31"
+              class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
+            />
+          </div>
+
+          <button
+            type="submit"
+            [disabled]="isSavingProfile"
+            class="mt-2 w-full rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-brand-500 dark:hover:bg-brand-600"
+          >
+            @if (isSavingProfile) {
+              Guardando...
+            } @else {
+              Guardar cambios
+            }
+          </button>
+        </form>
+      </div>
+
+      <!-- Fixed Expenses -->
+      <div class="glass-card">
+        <div class="flex items-start justify-between">
+          <div>
+            <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Gastos fijos</h2>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Total: {{ formatCurrency(getTotalFixedExpenses()) }}
+            </p>
+          </div>
+          <button
+            type="button"
+            (click)="openExpenseForm()"
+            class="rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600"
+          >
+            Agregar
+          </button>
+        </div>
+
+        <div class="mt-6 flex flex-col gap-3">
+          @if (fixedExpenses.length === 0) {
+            <p class="py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+              No hay gastos fijos registrados
+            </p>
+          }
+
+          @for (expense of fixedExpenses; track expense.id) {
+            <div class="flex items-center justify-between rounded-xl border border-slate-200/70 bg-white/50 p-4 dark:border-slate-700/50 dark:bg-slate-800/50"
+                 [class.opacity-50]="!expense.is_active">
+              <div class="flex flex-col">
+                <span class="font-medium text-slate-900 dark:text-white">{{ expense.description }}</span>
+                <span class="text-xs text-slate-500 dark:text-slate-400">
+                  Dia {{ expense.due_day }} de cada mes
+                  @if (!expense.is_active) {
+                    <span class="ml-2 text-amber-500">(Inactivo)</span>
+                  }
+                </span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="font-semibold text-slate-900 dark:text-white">
+                  {{ formatCurrency(expense.amount) }}
+                </span>
+                <button
+                  type="button"
+                  (click)="openExpenseForm(expense)"
+                  class="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-700 dark:hover:text-white"
+                  aria-label="Editar"
+                >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  (click)="onDeleteExpense(expense)"
+                  class="rounded-lg p-2 text-slate-500 transition-colors hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-500/20 dark:hover:text-rose-400"
+                  aria-label="Eliminar"
+                >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Expense Form Modal -->
+  @if (isExpenseFormOpen) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div class="glass-card w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
+          {{ editingExpenseId ? 'Editar gasto fijo' : 'Nuevo gasto fijo' }}
+        </h3>
+
+        <form [formGroup]="expenseForm" (ngSubmit)="onSaveExpense()" class="mt-6 flex flex-col gap-5">
+          <div class="flex flex-col gap-2">
+            <label for="expenseDescription" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Descripcion
+            </label>
+            <input
+              type="text"
+              id="expenseDescription"
+              formControlName="description"
+              placeholder="Ej: Arriendo, Luz, Internet..."
+              class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
+            />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label for="expenseAmount" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Monto
+            </label>
+            <input
+              type="number"
+              id="expenseAmount"
+              formControlName="amount"
+              placeholder="0"
+              class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
+            />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label for="expenseDueDay" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Dia de vencimiento (1-31)
+            </label>
+            <input
+              type="number"
+              id="expenseDueDay"
+              formControlName="dueDay"
+              min="1"
+              max="31"
+              class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
+            />
+          </div>
+
+          <div class="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="expenseIsActive"
+              formControlName="isActive"
+              class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-700"
+            />
+            <label for="expenseIsActive" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Activo
+            </label>
+          </div>
+
+          <div class="mt-2 flex gap-3">
+            <button
+              type="button"
+              (click)="closeExpenseForm()"
+              class="flex-1 rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm font-semibold text-slate-700 transition-all duration-200 hover:bg-slate-100 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-700"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              [disabled]="isSavingExpense"
+              class="flex-1 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-brand-500 dark:hover:bg-brand-600"
+            >
+              @if (isSavingExpense) {
+                Guardando...
+              } @else {
+                Guardar
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+</section>

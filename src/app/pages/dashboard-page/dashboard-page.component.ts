@@ -21,13 +21,14 @@ import {
   CreateTransactionPayload,
   DashboardPayload,
   UpdateTransactionPayload,
+  UserProfile,
+  FixedExpense,
 } from '../../models/api.models';
 import { TransactionFormComponent } from '../../components/transaction-form/transaction-form.component';
 import { CategoryBreakdownComponent } from '../../components/category-breakdown/category-breakdown.component';
 import { SkeletonCardComponent } from '../../components/skeleton/skeleton-card.component';
 import { SkeletonTransactionComponent } from '../../components/skeleton/skeleton-transaction.component';
 
-const USER_ID = 1;
 const TRANSACTION_FETCH_LIMIT = 120;
 const TRANSACTION_PAGE_SIZE = 6;
 
@@ -53,7 +54,6 @@ export class DashboardPageComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly title = 'Finanzapp';
-  readonly userId = USER_ID;
   lastUpdated = '';
   isLoading = true;
   errorMessage = '';
@@ -78,6 +78,8 @@ export class DashboardPageComponent implements OnInit {
   editingTransaction: ApiTransaction | null = null;
   formMode: 'create' | 'edit' = 'create';
   reportPeriod: 'monthly' | 'yearly' = 'monthly';
+  userProfile: UserProfile | null = null;
+  fixedExpenses: FixedExpense[] = [];
 
   private readonly currencyFormatter = new Intl.NumberFormat('es-CL', {
     style: 'currency',
@@ -112,11 +114,11 @@ export class DashboardPageComponent implements OnInit {
       .subscribe({
         next: () => {
           this.isFormOpen = false;
-          this.toastService.success('Transacción creada correctamente');
+          this.toastService.success('Transaccion creada correctamente');
           this.loadDashboard();
         },
         error: () => {
-          this.toastService.error('No se pudo guardar la transacción');
+          this.toastService.error('No se pudo guardar la transaccion');
           this.isLoading = false;
         },
       });
@@ -132,11 +134,11 @@ export class DashboardPageComponent implements OnInit {
           this.isFormOpen = false;
           this.editingTransaction = null;
           this.formMode = 'create';
-          this.toastService.success('Transacción actualizada correctamente');
+          this.toastService.success('Transaccion actualizada correctamente');
           this.loadDashboard();
         },
         error: () => {
-          this.toastService.error('No se pudo actualizar la transacción');
+          this.toastService.error('No se pudo actualizar la transaccion');
           this.isLoading = false;
         },
       });
@@ -159,7 +161,7 @@ export class DashboardPageComponent implements OnInit {
       return;
     }
 
-    if (!confirm('¿Estás seguro de eliminar esta transacción?')) {
+    if (!confirm('Estas seguro de eliminar esta transaccion?')) {
       return;
     }
 
@@ -169,11 +171,11 @@ export class DashboardPageComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.toastService.success('Transacción eliminada correctamente');
+          this.toastService.success('Transaccion eliminada correctamente');
           this.loadDashboard();
         },
         error: () => {
-          this.toastService.error('No se pudo eliminar la transacción');
+          this.toastService.error('No se pudo eliminar la transaccion');
           this.isLoading = false;
         },
       });
@@ -206,7 +208,7 @@ export class DashboardPageComponent implements OnInit {
     this.errorMessage = '';
 
     this.dashboardService
-      .getDashboard(USER_ID, TRANSACTION_FETCH_LIMIT)
+      .getDashboard(TRANSACTION_FETCH_LIMIT)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (payload) => {
@@ -224,6 +226,8 @@ export class DashboardPageComponent implements OnInit {
     const transactions = payload.transactions ?? [];
     this.categories = payload.categories ?? [];
     this.apiTransactions = transactions;
+    this.userProfile = payload.userProfile ?? null;
+    this.fixedExpenses = payload.fixedExpenses ?? [];
     this.cards = this.buildSummaryCards(payload);
     this.monthlyPerformance = this.buildPerformanceSeries(transactions, this.reportPeriod);
     this.lastUpdated = this.computeLastUpdated(transactions);
@@ -313,6 +317,8 @@ export class DashboardPageComponent implements OnInit {
     const upcomingPayments = payload.upcomingPayments ?? [];
     const financialGoals = payload.financialGoals ?? [];
     const categories = payload.categories ?? [];
+    const userProfile = payload.userProfile;
+    const fixedExpenses = payload.fixedExpenses ?? [];
 
     const totals = this.calculateTotals(transactions);
     const balance = totals.income - totals.expense;
@@ -324,7 +330,12 @@ export class DashboardPageComponent implements OnInit {
     const largestTransaction = this.getLargestMonthlyTransaction(transactions);
     const largestCategory = this.getCategoryName(largestTransaction?.category_id, categories);
 
-    return [
+    // Calculate available balance (salary - fixed expenses - monthly expense)
+    const monthlySalary = userProfile?.monthly_salary ?? 0;
+    const totalFixedExpenses = fixedExpenses.filter((e) => e.is_active).reduce((sum, e) => sum + e.amount, 0);
+    const availableBalance = monthlySalary - totalFixedExpenses - monthlyExpense;
+
+    const cards: SummaryCard[] = [
       {
         title: 'Saldo general',
         value: this.currencyFormatter.format(balance),
@@ -332,6 +343,24 @@ export class DashboardPageComponent implements OnInit {
         trend: balance > 0 ? 'up' : balance < 0 ? 'down' : 'neutral',
         accent: 'emerald',
       },
+    ];
+
+    // Add salary card if user has a profile with salary
+    if (userProfile && monthlySalary > 0) {
+      cards.push({
+        title: 'Sueldo mensual',
+        value: this.currencyFormatter.format(monthlySalary),
+        description: `Dia de pago: ${userProfile.salary_day} de cada mes.`,
+        trend: 'up',
+        accent: 'emerald',
+        items: [
+          { label: 'Disponible', value: this.currencyFormatter.format(availableBalance) },
+          { label: 'Gastos fijos', value: this.currencyFormatter.format(totalFixedExpenses) },
+        ],
+      });
+    }
+
+    cards.push(
       {
         title: 'Gastos del mes',
         value: this.currencyFormatter.format(monthlyExpense),
@@ -376,7 +405,9 @@ export class DashboardPageComponent implements OnInit {
         accent: 'violet',
         items: goalsProgress.items,
       },
-    ];
+    );
+
+    return cards;
   }
 
   private buildPerformanceSeries(

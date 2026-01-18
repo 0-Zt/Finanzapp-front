@@ -23,7 +23,6 @@ import {
   UpdateTransactionPayload,
 } from '../../models/api.models';
 
-const USER_ID = 1;
 const TRANSACTION_FETCH_LIMIT = 300;
 const TRANSACTION_PAGE_SIZE = 15;
 
@@ -39,7 +38,6 @@ export class TransactionsPageComponent implements OnInit {
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly userId = USER_ID;
   isLoading = true;
   errorMessage = '';
   isFormOpen = false;
@@ -221,7 +219,7 @@ export class TransactionsPageComponent implements OnInit {
     this.errorMessage = '';
 
     this.dashboardService
-      .getDashboard(USER_ID, TRANSACTION_FETCH_LIMIT)
+      .getDashboard(TRANSACTION_FETCH_LIMIT)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (payload) => {

@@ -1,0 +1,85 @@
+<section class="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-slate-100 px-4 py-12 dark:from-[#0b1220] dark:via-[#0f172a] dark:to-[#0b1220]">
+  <div class="w-full max-w-md">
+    <div class="glass-card">
+      <div class="mb-8 text-center">
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+          Bienvenido a Finanzapp
+        </h1>
+        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">
+          Inicia sesion para acceder a tu cuenta
+        </p>
+      </div>
+
+      @if (errorMessage) {
+        <div class="mb-6 rounded-xl border border-rose-200/70 bg-rose-50/80 px-4 py-3 text-sm text-rose-700 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
+          {{ errorMessage }}
+        </div>
+      }
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+        <div class="flex flex-col gap-2">
+          <label for="email" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+            Correo electronico
+          </label>
+          <input
+            type="email"
+            id="email"
+            formControlName="email"
+            placeholder="tu@email.com"
+            class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
+            [class.border-rose-500]="emailInvalid"
+            [class.dark:border-rose-500]="emailInvalid"
+          />
+          @if (emailInvalid) {
+            <span class="text-xs text-rose-500">Por favor, ingresa un correo valido.</span>
+          }
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="password" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+            Contrasena
+          </label>
+          <input
+            type="password"
+            id="password"
+            formControlName="password"
+            placeholder="Tu contrasena"
+            class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
+            [class.border-rose-500]="passwordInvalid"
+            [class.dark:border-rose-500]="passwordInvalid"
+          />
+          @if (passwordInvalid) {
+            <span class="text-xs text-rose-500">La contrasena debe tener al menos 6 caracteres.</span>
+          }
+        </div>
+
+        <button
+          type="submit"
+          [disabled]="isLoading"
+          class="mt-2 w-full rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/50 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-brand-500 dark:hover:bg-brand-600"
+        >
+          @if (isLoading) {
+            <span class="flex items-center justify-center gap-2">
+              <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Iniciando sesion...
+            </span>
+          } @else {
+            Iniciar sesion
+          }
+        </button>
+      </form>
+
+      <div class="mt-6 text-center">
+        <p class="text-sm text-slate-500 dark:text-slate-400">
+          No tienes una cuenta?
+          <a routerLink="/register" class="font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300">
+            Registrate aqui
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

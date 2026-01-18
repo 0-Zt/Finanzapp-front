@@ -27,7 +27,6 @@ interface TransactionFormState {
 })
 export class TransactionFormComponent implements OnChanges {
   @Input({ required: true }) categories: ApiExpenseCategory[] = [];
-  @Input({ required: true }) userId = 0;
   @Input() isOpen = false;
   @Input() mode: 'create' | 'edit' = 'create';
   @Input() transaction: ApiTransaction | null = null;
@@ -81,7 +80,6 @@ export class TransactionFormComponent implements OnChanges {
       this.updateTransaction.emit({ id: this.transaction.id, payload });
     } else {
       const payload: CreateTransactionPayload = {
-        user_id: this.userId,
         transaction_date: this.toIsoDate(this.formState.date),
         description: this.formState.description.trim(),
         category_id: this.formState.categoryId,

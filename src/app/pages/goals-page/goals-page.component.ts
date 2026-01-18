@@ -9,8 +9,6 @@ import {
   UpdateFinancialGoalPayload,
 } from '../../models/api.models';
 
-const USER_ID = 1;
-
 interface GoalFormState {
   title: string;
   currentAmount: number | null;
@@ -28,7 +26,6 @@ export class GoalsPageComponent implements OnInit {
   private readonly goalsService = inject(FinancialGoalsService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly userId = USER_ID;
   goals: ApiFinancialGoal[] = [];
   isLoading = true;
   errorMessage = '';
@@ -135,7 +132,6 @@ export class GoalsPageComponent implements OnInit {
     }
 
     const payload: CreateFinancialGoalPayload = {
-      user_id: this.userId,
       title: this.formState.title.trim(),
       current_amount: currentAmount,
       target_amount: this.formState.targetAmount,
@@ -163,7 +159,7 @@ export class GoalsPageComponent implements OnInit {
     this.errorMessage = '';
 
     this.goalsService
-      .getGoals(this.userId)
+      .getGoals()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (goals) => {

@@ -13,7 +13,6 @@ import {
 import { TransactionsCardComponent } from '../../components/transactions-card/transactions-card.component';
 import { Transaction } from '../../models/dashboard.models';
 
-const USER_ID = 1;
 const TRANSACTION_FETCH_LIMIT = 200;
 
 interface SavingsFormState {
@@ -35,7 +34,6 @@ export class SavingsPageComponent implements OnInit {
   private readonly transactionsService = inject(TransactionsService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly userId = USER_ID;
   categories: ApiExpenseCategory[] = [];
   savingsCategory: ApiExpenseCategory | null = null;
   savingsTransactions: Transaction[] = [];
@@ -64,7 +62,6 @@ export class SavingsPageComponent implements OnInit {
     const note = this.formState.note ? ` - ${this.formState.note.trim()}` : '';
 
     const payload: CreateTransactionPayload = {
-      user_id: this.userId,
       transaction_date: new Date(`${this.formState.date}T00:00:00`).toISOString(),
       description: `${label} ${etfLabel}${note}`,
       category_id: this.savingsCategory.id,
@@ -93,7 +90,7 @@ export class SavingsPageComponent implements OnInit {
     this.errorMessage = '';
 
     this.dashboardService
-      .getDashboard(this.userId, TRANSACTION_FETCH_LIMIT)
+      .getDashboard(TRANSACTION_FETCH_LIMIT)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (payload) => {
