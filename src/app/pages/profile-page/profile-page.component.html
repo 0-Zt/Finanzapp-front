@@ -72,6 +72,51 @@
             />
           </div>
 
+          <div class="flex flex-col gap-2">
+            <label for="timezone" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Zona horaria
+            </label>
+            <input
+              type="text"
+              id="timezone"
+              formControlName="timezone"
+              placeholder="America/Santiago"
+              class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
+            />
+            <span class="text-xs text-slate-500 dark:text-slate-400">
+              Usa el formato IANA (ej: America/Santiago)
+            </span>
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div class="flex flex-col gap-2">
+              <label for="budgetWarningThreshold" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Alerta (%)
+              </label>
+              <input
+                type="number"
+                id="budgetWarningThreshold"
+                formControlName="budgetWarningThreshold"
+                min="0"
+                max="100"
+                class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
+              />
+            </div>
+            <div class="flex flex-col gap-2">
+              <label for="budgetExceededThreshold" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Exceso (%)
+              </label>
+              <input
+                type="number"
+                id="budgetExceededThreshold"
+                formControlName="budgetExceededThreshold"
+                min="0"
+                max="100"
+                class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
+              />
+            </div>
+          </div>
+
           <button
             type="submit"
             [disabled]="isSavingProfile"
@@ -157,7 +202,7 @@
     <!-- Category Budgets Section -->
     <div class="mt-8">
       <div class="glass-card">
-        <div class="flex items-start justify-between">
+        <div class="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Presupuestos por categoria</h2>
             <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -167,16 +212,52 @@
                 Define limites de gasto mensuales por categoria
               }
             </p>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Mes: {{ formatBudgetMonthLabel(selectedBudgetMonth) }}
+            </p>
           </div>
-          <button
-            type="button"
-            (click)="openBudgetForm()"
-            [disabled]="availableCategories.length === 0"
-            class="rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
-          >
-            Agregar
-          </button>
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="flex items-center gap-2 rounded-xl border border-slate-200/70 bg-white/50 px-3 py-2 text-xs text-slate-600 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-slate-300">
+              <span class="text-[11px] uppercase tracking-wide">Mes</span>
+              <input
+                type="month"
+                [value]="selectedBudgetMonth"
+                (change)="onBudgetMonthChange($any($event.target).value)"
+                class="rounded-lg border border-slate-200/70 bg-white/80 px-2 py-1 text-xs text-slate-700 outline-none focus:border-brand-500 dark:border-slate-700/50 dark:bg-slate-900/40 dark:text-slate-200"
+              />
+            </div>
+            <button
+              type="button"
+              (click)="openBudgetForm()"
+              [disabled]="availableCategories.length === 0"
+              class="rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
+            >
+              Agregar
+            </button>
+          </div>
         </div>
+
+        @if (budgetSummary && budgetSummary.unbudgeted_total > 0) {
+          <div class="mt-4 rounded-xl border border-amber-200/70 bg-amber-50/40 p-4 text-sm text-amber-700 dark:border-amber-700/40 dark:bg-amber-900/20 dark:text-amber-200">
+            <div class="flex items-center justify-between">
+              <span class="font-medium">Sin presupuesto</span>
+              <span class="font-semibold">{{ formatCurrency(budgetSummary.unbudgeted_total) }}</span>
+            </div>
+            <p class="mt-1 text-xs text-amber-600 dark:text-amber-300">
+              {{ budgetSummary.unbudgeted_categories }} categorias con gasto este mes
+            </p>
+            @if (budgetSummary.unbudgeted_breakdown.length) {
+              <div class="mt-3 grid gap-2 sm:grid-cols-2">
+                @for (item of budgetSummary.unbudgeted_breakdown; track item.category_name) {
+                  <div class="flex items-center justify-between rounded-lg bg-white/70 px-3 py-2 text-xs text-slate-700 dark:bg-slate-900/40 dark:text-slate-200">
+                    <span class="truncate">{{ item.category_name }}</span>
+                    <span class="font-semibold">{{ formatCurrency(item.spent_amount) }}</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
 
         <div class="mt-6 flex flex-col gap-3">
           @if (!budgetSummary || budgetSummary.budgets.length === 0) {
@@ -213,6 +294,33 @@
             </div>
           }
         </div>
+
+        @if (budgetSummary && budgetSummary.suggested_budgets.length > 0) {
+          <div class="mt-6">
+            <h3 class="text-sm font-medium text-slate-700 dark:text-slate-300">Sugerencias de presupuesto</h3>
+            <div class="mt-3 grid gap-2 sm:grid-cols-2">
+              @for (suggestion of budgetSummary.suggested_budgets.slice(0, 4); track suggestion.category_id) {
+                <div class="flex items-center justify-between rounded-xl border border-slate-200/70 bg-white/50 px-3 py-2 dark:border-slate-700/50 dark:bg-slate-800/50">
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-medium text-slate-900 dark:text-white">
+                      {{ suggestion.category_name }}
+                    </p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">
+                      Promedio 3 meses: {{ formatCurrency(suggestion.average_spent) }}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    (click)="applySuggestedBudget(suggestion)"
+                    class="rounded-lg border border-brand-200/70 px-3 py-1 text-xs font-semibold text-brand-700 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:border-brand-500/40 dark:text-brand-200 dark:hover:bg-brand-500/10"
+                  >
+                    Agregar
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        }
       </div>
     </div>
   }
@@ -337,6 +445,30 @@
             </div>
           }
 
+          <div class="flex items-center justify-between rounded-xl border border-slate-200/70 bg-white/50 px-3 py-2 text-xs text-slate-600 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-slate-300">
+            <span class="uppercase tracking-wide">Mes</span>
+            <span class="font-semibold text-slate-900 dark:text-white">
+              {{ formatBudgetMonthLabel(selectedBudgetMonth) }}
+            </span>
+          </div>
+
+          @if (selectedBudgetSuggestion) {
+            <div class="rounded-xl border border-slate-200/70 bg-white/50 px-3 py-2 text-xs text-slate-600 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-slate-300">
+              <div class="flex items-center justify-between">
+                <span>
+                  Promedio 3 meses: {{ formatCurrency(selectedBudgetSuggestion.average_spent) }}
+                </span>
+                <button
+                  type="button"
+                  (click)="useSuggestionAmount()"
+                  class="rounded-lg border border-brand-200/70 px-2 py-1 text-[11px] font-semibold text-brand-700 transition-colors hover:border-brand-300 hover:bg-brand-50 dark:border-brand-500/40 dark:text-brand-200 dark:hover:bg-brand-500/10"
+                >
+                  Usar sugerencia
+                </button>
+              </div>
+            </div>
+          }
+
           <div class="flex flex-col gap-2">
             <label for="budgetAmount" class="text-sm font-medium text-slate-700 dark:text-slate-300">
               Monto del presupuesto
@@ -349,6 +481,18 @@
               min="1"
               class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
             />
+          </div>
+
+          <div class="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="budgetRollover"
+              formControlName="rollover_enabled"
+              class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-700"
+            />
+            <label for="budgetRollover" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Rollover del saldo no usado
+            </label>
           </div>
 
           <div class="mt-2 flex gap-3">

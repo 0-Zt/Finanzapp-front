@@ -15,8 +15,18 @@
       <div>
         <h4 class="font-medium text-slate-900 dark:text-white">{{ budget.category_name }}</h4>
         <p class="text-xs text-slate-500 dark:text-slate-400">
-          {{ formatCurrency(budget.spent_amount) }} de {{ formatCurrency(budget.budget_amount) }}
+          {{ formatCurrency(budget.spent_amount) }} de {{ formatCurrency(budget.effective_budget_amount) }}
+          @if (budget.rollover_amount > 0) {
+            <span class="ml-1 text-[11px] text-slate-400 dark:text-slate-500">
+              (rollover {{ formatCurrency(budget.rollover_amount) }})
+            </span>
+          }
         </p>
+        @if (budget.suggested_budget) {
+          <p class="text-[11px] text-slate-400 dark:text-slate-500">
+            Sugerido: {{ formatCurrency(budget.suggested_budget) }}
+          </p>
+        }
       </div>
     </div>
     <span

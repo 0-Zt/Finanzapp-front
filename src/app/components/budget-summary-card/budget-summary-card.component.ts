@@ -24,16 +24,30 @@ export class BudgetSummaryCardComponent {
     return this.currencyFormatter.format(amount);
   }
 
-  get alertBudgets(): ApiBudgetProgress[] {
+  get overBudgetBudgets(): ApiBudgetProgress[] {
     if (!this.summary) return [];
+    const fromSummary = this.summary.top_over_budget ?? [];
+    if (fromSummary.length > 0) return fromSummary;
     return this.summary.budgets
-      .filter(b => b.status === 'warning' || b.status === 'exceeded')
+      .filter(b => b.status === 'exceeded')
       .sort((a, b) => b.percentage - a.percentage)
       .slice(0, 3);
   }
 
-  get hasAlerts(): boolean {
-    return this.alertBudgets.length > 0;
+  get warningBudgets(): ApiBudgetProgress[] {
+    if (!this.summary) return [];
+    return this.summary.budgets
+      .filter(b => b.status === 'warning')
+      .sort((a, b) => b.percentage - a.percentage)
+      .slice(0, 3);
+  }
+
+  get hasOverBudget(): boolean {
+    return this.overBudgetBudgets.length > 0;
+  }
+
+  get hasWarnings(): boolean {
+    return this.warningBudgets.length > 0;
   }
 
   get totalPercentage(): number {
@@ -47,9 +61,17 @@ export class BudgetSummaryCardComponent {
   }
 
   get overallStatus(): 'safe' | 'warning' | 'exceeded' {
-    if (this.totalPercentage >= 100) return 'exceeded';
-    if (this.totalPercentage >= 80) return 'warning';
+    if (this.totalPercentage >= this.exceededThreshold) return 'exceeded';
+    if (this.totalPercentage >= this.warningThreshold) return 'warning';
     return 'safe';
+  }
+
+  get warningThreshold(): number {
+    return this.summary?.warning_threshold ?? 80;
+  }
+
+  get exceededThreshold(): number {
+    return this.summary?.exceeded_threshold ?? 100;
   }
 
   get statusClasses(): string {

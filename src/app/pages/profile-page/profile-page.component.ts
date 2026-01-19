@@ -6,7 +6,7 @@ import { ProfileService } from '../../services/profile.service';
 import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
 import { CategoryBudgetsService } from '../../services/category-budgets.service';
-import { DashboardService } from '../../services/dashboard.service';
+import { CategoriesService } from '../../services/categories.service';
 import { BudgetProgressBarComponent } from '../../components/budget-progress-bar/budget-progress-bar.component';
 import {
   UserProfile,
@@ -16,6 +16,7 @@ import {
   ApiBudgetProgress,
   ApiBudgetSummary,
   ApiExpenseCategory,
+  ApiSuggestedBudget,
   CreateCategoryBudgetPayload,
   UpdateCategoryBudgetPayload
 } from '../../models/api.models';
@@ -32,23 +33,30 @@ export class ProfilePageComponent implements OnInit {
   private readonly toastService = inject(ToastService);
   private readonly authService = inject(AuthService);
   private readonly categoryBudgetsService = inject(CategoryBudgetsService);
-  private readonly dashboardService = inject(DashboardService);
+  private readonly categoriesService = inject(CategoriesService);
   private readonly destroyRef = inject(DestroyRef);
 
   profile: UserProfile | null = null;
   fixedExpenses: FixedExpense[] = [];
   budgetSummary: ApiBudgetSummary | null = null;
   categories: ApiExpenseCategory[] = [];
+  selectedBudgetSuggestion: ApiSuggestedBudget | null = null;
   isLoading = true;
   isSavingProfile = false;
   isSavingExpense = false;
   isSavingBudget = false;
+  private readonly defaultTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  private profileTimeZone = this.defaultTimeZone;
+  selectedBudgetMonth = this.getCurrentMonth(this.defaultTimeZone);
 
   profileForm: FormGroup = this.fb.group({
     fullName: [''],
     monthlySalary: [0, [Validators.min(0)]],
     salaryDay: [1, [Validators.min(1), Validators.max(31)]],
     currency: ['CLP'],
+    timezone: [this.defaultTimeZone],
+    budgetWarningThreshold: [80, [Validators.min(0), Validators.max(100)]],
+    budgetExceededThreshold: [100, [Validators.min(0), Validators.max(100)]],
   });
 
   expenseForm: FormGroup = this.fb.group({
@@ -64,6 +72,7 @@ export class ProfilePageComponent implements OnInit {
   budgetForm: FormGroup = this.fb.group({
     category_id: [null, Validators.required],
     budget_amount: [0, [Validators.required, Validators.min(1)]],
+    rollover_enabled: [false],
   });
 
   editingBudgetId: number | null = null;
@@ -82,8 +91,16 @@ export class ProfilePageComponent implements OnInit {
   ngOnInit(): void {
     this.loadProfile();
     this.loadFixedExpenses();
-    this.loadBudgets();
     this.loadCategories();
+    this.budgetForm.get('category_id')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((categoryId) => {
+        if (this.editingBudgetId) {
+          this.selectedBudgetSuggestion = null;
+          return;
+        }
+        this.selectedBudgetSuggestion = this.getSuggestedBudget(categoryId ?? null);
+      });
   }
 
   loadProfile(): void {
@@ -92,17 +109,30 @@ export class ProfilePageComponent implements OnInit {
       .subscribe({
         next: (profile) => {
           this.profile = profile;
+          const resolvedTimeZone = profile.timezone || this.defaultTimeZone;
+          this.profileTimeZone = resolvedTimeZone;
+          const warningThreshold = profile.budget_warning_threshold ?? 80;
+          const exceededThreshold = profile.budget_exceeded_threshold ?? 100;
           this.profileForm.patchValue({
             fullName: profile.full_name || '',
             monthlySalary: profile.monthly_salary,
             salaryDay: profile.salary_day,
             currency: profile.currency,
+            timezone: resolvedTimeZone,
+            budgetWarningThreshold: warningThreshold,
+            budgetExceededThreshold: exceededThreshold,
           });
+          const currentMonth = this.getCurrentMonth(resolvedTimeZone);
+          if (this.selectedBudgetMonth !== currentMonth) {
+            this.selectedBudgetMonth = currentMonth;
+          }
           this.isLoading = false;
+          this.loadBudgets();
         },
         error: () => {
           this.toastService.error('Error al cargar el perfil');
           this.isLoading = false;
+          this.loadBudgets();
         },
       });
   }
@@ -125,8 +155,25 @@ export class ProfilePageComponent implements OnInit {
       return;
     }
 
+    const formValue = this.profileForm.value;
+    const warningThreshold = Number(formValue.budgetWarningThreshold);
+    const exceededThreshold = Number(formValue.budgetExceededThreshold);
+
+    if (Number.isFinite(warningThreshold) && Number.isFinite(exceededThreshold) && warningThreshold >= exceededThreshold) {
+      this.toastService.error('El umbral de alerta debe ser menor que el de exceso.');
+      return;
+    }
+
     this.isSavingProfile = true;
-    this.profileService.updateProfile(this.profileForm.value)
+    this.profileService.updateProfile({
+      fullName: formValue.fullName,
+      monthlySalary: formValue.monthlySalary,
+      salaryDay: formValue.salaryDay,
+      currency: formValue.currency,
+      timezone: formValue.timezone || this.defaultTimeZone,
+      budgetWarningThreshold: Number.isFinite(warningThreshold) ? warningThreshold : undefined,
+      budgetExceededThreshold: Number.isFinite(exceededThreshold) ? exceededThreshold : undefined,
+    })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (profile) => {
@@ -252,12 +299,58 @@ export class ProfilePageComponent implements OnInit {
       .reduce((sum, e) => sum + e.amount, 0);
   }
 
+  onBudgetMonthChange(month: string): void {
+    if (!month) return;
+    this.selectedBudgetMonth = month;
+    this.loadBudgets();
+  }
+
+  getSuggestedBudget(categoryId: number | null): ApiSuggestedBudget | null {
+    if (!this.budgetSummary || categoryId === null) return null;
+    return this.budgetSummary.suggested_budgets.find((suggestion) => suggestion.category_id === categoryId) || null;
+  }
+
+  applySuggestedBudget(suggestion: ApiSuggestedBudget): void {
+    this.selectedBudgetSuggestion = suggestion;
+    this.editingBudgetId = null;
+    this.budgetForm.patchValue({
+      category_id: suggestion.category_id,
+      budget_amount: suggestion.average_spent,
+      rollover_enabled: false,
+    });
+    this.isBudgetFormOpen = true;
+  }
+
+  useSuggestionAmount(): void {
+    if (!this.selectedBudgetSuggestion) return;
+    this.budgetForm.patchValue({
+      budget_amount: this.selectedBudgetSuggestion.average_spent,
+    });
+  }
+
+  formatBudgetMonthLabel(month: string): string {
+    return month;
+  }
+
+  private getCurrentMonth(timeZone: string): string {
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+    });
+    const parts = formatter.formatToParts(new Date());
+    const year = parts.find((part) => part.type === 'year')?.value ?? `${new Date().getUTCFullYear()}`;
+    const month = parts.find((part) => part.type === 'month')?.value ?? `${new Date().getUTCMonth() + 1}`.padStart(2, '0');
+    return `${year}-${month}`;
+  }
+
   loadBudgets(): void {
-    this.categoryBudgetsService.getProgress()
+    this.categoryBudgetsService.getProgress(this.selectedBudgetMonth)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (summary) => {
           this.budgetSummary = summary;
+          this.selectedBudgetSuggestion = null;
         },
         error: () => {
           this.toastService.error('Error al cargar los presupuestos');
@@ -266,11 +359,11 @@ export class ProfilePageComponent implements OnInit {
   }
 
   loadCategories(): void {
-    this.dashboardService.getDashboard(1)
+    this.categoriesService.getCategories()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (data) => {
-          this.categories = data.categories;
+        next: (categories) => {
+          this.categories = categories;
         },
         error: () => {
           this.toastService.error('Error al cargar las categorias');
@@ -297,17 +390,20 @@ export class ProfilePageComponent implements OnInit {
   }
 
   openBudgetForm(budget?: ApiBudgetProgress): void {
+    this.selectedBudgetSuggestion = null;
     if (budget) {
       this.editingBudgetId = budget.id;
       this.budgetForm.patchValue({
         category_id: budget.category_id,
         budget_amount: budget.budget_amount,
+        rollover_enabled: budget.rollover_enabled,
       });
     } else {
       this.editingBudgetId = null;
       this.budgetForm.reset({
         category_id: null,
         budget_amount: 0,
+        rollover_enabled: false,
       });
     }
     this.isBudgetFormOpen = true;
@@ -316,7 +412,12 @@ export class ProfilePageComponent implements OnInit {
   closeBudgetForm(): void {
     this.isBudgetFormOpen = false;
     this.editingBudgetId = null;
-    this.budgetForm.reset();
+    this.budgetForm.reset({
+      category_id: null,
+      budget_amount: 0,
+      rollover_enabled: false,
+    });
+    this.selectedBudgetSuggestion = null;
   }
 
   onSaveBudget(): void {
@@ -331,6 +432,7 @@ export class ProfilePageComponent implements OnInit {
     if (this.editingBudgetId) {
       const payload: UpdateCategoryBudgetPayload = {
         budget_amount: formValue.budget_amount,
+        rollover_enabled: formValue.rollover_enabled,
       };
 
       this.categoryBudgetsService.updateBudget(this.editingBudgetId, payload)
@@ -351,6 +453,8 @@ export class ProfilePageComponent implements OnInit {
       const payload: CreateCategoryBudgetPayload = {
         category_id: formValue.category_id,
         budget_amount: formValue.budget_amount,
+        budget_month: this.selectedBudgetMonth,
+        rollover_enabled: formValue.rollover_enabled,
       };
 
       this.categoryBudgetsService.createBudget(payload)

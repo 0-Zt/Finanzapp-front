@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from './api.config';
 import {
@@ -13,12 +13,14 @@ import {
 export class CategoryBudgetsService {
   constructor(private readonly http: HttpClient) {}
 
-  getBudgets(): Observable<ApiCategoryBudget[]> {
-    return this.http.get<ApiCategoryBudget[]>(`${API_BASE_URL}/category-budgets`);
+  getBudgets(month?: string): Observable<ApiCategoryBudget[]> {
+    const params = month ? new HttpParams().set('month', month) : undefined;
+    return this.http.get<ApiCategoryBudget[]>(`${API_BASE_URL}/category-budgets`, { params });
   }
 
-  getProgress(): Observable<ApiBudgetSummary> {
-    return this.http.get<ApiBudgetSummary>(`${API_BASE_URL}/category-budgets/progress`);
+  getProgress(month?: string): Observable<ApiBudgetSummary> {
+    const params = month ? new HttpParams().set('month', month) : undefined;
+    return this.http.get<ApiBudgetSummary>(`${API_BASE_URL}/category-budgets/progress`, { params });
   }
 
   createBudget(payload: CreateCategoryBudgetPayload): Observable<unknown> {

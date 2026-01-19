@@ -48,6 +48,9 @@ export interface UserProfile {
   salary_day: number;
   currency: string;
   onboarding_completed: boolean;
+  timezone: string | null;
+  budget_warning_threshold: number | null;
+  budget_exceeded_threshold: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -112,6 +115,9 @@ export interface UpdateProfilePayload {
   salaryDay?: number;
   currency?: string;
   onboardingCompleted?: boolean;
+  timezone?: string;
+  budgetWarningThreshold?: number;
+  budgetExceededThreshold?: number;
 }
 
 export interface CreateFixedExpensePayload {
@@ -137,15 +143,45 @@ export interface ApiBudgetProgress {
   category_icon: string;
   category_color: string;
   budget_amount: number;
+  budget_month: string;
+  rollover_enabled: boolean;
+  rollover_amount: number;
+  effective_budget_amount: number;
+  suggested_budget: number | null;
   spent_amount: number;
   remaining_amount: number;
   percentage: number;
   status: 'safe' | 'warning' | 'exceeded';
 }
 
+export interface ApiSuggestedBudget {
+  category_id: number;
+  category_name: string;
+  category_icon: string;
+  category_color: string;
+  average_spent: number;
+}
+
+export interface ApiUnbudgetedCategorySummary {
+  category_id: number | null;
+  category_name: string;
+  category_icon: string;
+  category_color: string;
+  spent_amount: number;
+}
+
 export interface ApiBudgetSummary {
+  month: string;
+  timezone: string;
+  warning_threshold: number;
+  exceeded_threshold: number;
   total_budget: number;
   total_spent: number;
+  unbudgeted_total: number;
+  unbudgeted_categories: number;
+  top_over_budget: ApiBudgetProgress[];
+  suggested_budgets: ApiSuggestedBudget[];
+  unbudgeted_breakdown: ApiUnbudgetedCategorySummary[];
   budgets: ApiBudgetProgress[];
 }
 
@@ -154,6 +190,8 @@ export interface ApiCategoryBudget {
   user_id: string;
   category_id: number;
   budget_amount: number;
+  budget_month: string;
+  rollover_enabled: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -161,8 +199,11 @@ export interface ApiCategoryBudget {
 export interface CreateCategoryBudgetPayload {
   category_id: number;
   budget_amount: number;
+  budget_month?: string;
+  rollover_enabled?: boolean;
 }
 
 export interface UpdateCategoryBudgetPayload {
   budget_amount?: number;
+  rollover_enabled?: boolean;
 }
