@@ -153,6 +153,68 @@
         </div>
       </div>
     </div>
+
+    <!-- Category Budgets Section -->
+    <div class="mt-8">
+      <div class="glass-card">
+        <div class="flex items-start justify-between">
+          <div>
+            <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Presupuestos por categoria</h2>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              @if (budgetSummary && budgetSummary.total_budget > 0) {
+                Total: {{ formatCurrency(budgetSummary.total_spent) }} de {{ formatCurrency(budgetSummary.total_budget) }}
+              } @else {
+                Define limites de gasto mensuales por categoria
+              }
+            </p>
+          </div>
+          <button
+            type="button"
+            (click)="openBudgetForm()"
+            [disabled]="availableCategories.length === 0"
+            class="rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-200 hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-brand-500 dark:hover:bg-brand-600"
+          >
+            Agregar
+          </button>
+        </div>
+
+        <div class="mt-6 flex flex-col gap-3">
+          @if (!budgetSummary || budgetSummary.budgets.length === 0) {
+            <p class="py-8 text-center text-sm text-slate-500 dark:text-slate-400">
+              No hay presupuestos configurados
+            </p>
+          }
+
+          @for (budget of budgetSummary?.budgets; track budget.id) {
+            <div class="relative">
+              <app-budget-progress-bar [budget]="budget"></app-budget-progress-bar>
+              <div class="absolute right-4 top-4 flex gap-1">
+                <button
+                  type="button"
+                  (click)="openBudgetForm(budget)"
+                  class="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-700 dark:hover:text-white"
+                  aria-label="Editar"
+                >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  (click)="onDeleteBudget(budget)"
+                  class="rounded-lg p-2 text-slate-500 transition-colors hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-500/20 dark:hover:text-rose-400"
+                  aria-label="Eliminar"
+                >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
   }
 
   <!-- Expense Form Modal -->
@@ -230,6 +292,79 @@
               class="flex-1 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-brand-500 dark:hover:bg-brand-600"
             >
               @if (isSavingExpense) {
+                Guardando...
+              } @else {
+                Guardar
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Budget Form Modal -->
+  @if (isBudgetFormOpen) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div class="glass-card w-full max-w-md mx-4">
+        <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
+          {{ editingBudgetId ? 'Editar presupuesto' : 'Nuevo presupuesto' }}
+        </h3>
+
+        <form [formGroup]="budgetForm" (ngSubmit)="onSaveBudget()" class="mt-6 flex flex-col gap-5">
+          @if (!editingBudgetId) {
+            <div class="flex flex-col gap-2">
+              <label for="budgetCategory" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+                Categoria
+              </label>
+              <select
+                id="budgetCategory"
+                formControlName="category_id"
+                class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white"
+              >
+                <option [ngValue]="null" disabled>Selecciona una categoria</option>
+                @for (category of availableCategories; track category.id) {
+                  <option [ngValue]="category.id">{{ category.name }}</option>
+                }
+              </select>
+            </div>
+          } @else {
+            <div class="flex items-center gap-3 rounded-xl border border-slate-200/70 bg-white/50 p-3 dark:border-slate-700/50 dark:bg-slate-800/50">
+              <span class="text-sm text-slate-600 dark:text-slate-300">Categoria:</span>
+              <span class="font-medium text-slate-900 dark:text-white">
+                {{ editingBudgetCategoryName }}
+              </span>
+            </div>
+          }
+
+          <div class="flex flex-col gap-2">
+            <label for="budgetAmount" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Monto del presupuesto
+            </label>
+            <input
+              type="number"
+              id="budgetAmount"
+              formControlName="budget_amount"
+              placeholder="Ej: 150000"
+              min="1"
+              class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
+            />
+          </div>
+
+          <div class="mt-2 flex gap-3">
+            <button
+              type="button"
+              (click)="closeBudgetForm()"
+              class="flex-1 rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm font-semibold text-slate-700 transition-all duration-200 hover:bg-slate-100 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-slate-300 dark:hover:bg-slate-700"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              [disabled]="isSavingBudget"
+              class="flex-1 rounded-xl bg-brand-600 px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-brand-500 dark:hover:bg-brand-600"
+            >
+              @if (isSavingBudget) {
                 Guardando...
               } @else {
                 Guardar

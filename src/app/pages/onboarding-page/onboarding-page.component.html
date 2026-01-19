@@ -1,0 +1,230 @@
+<section class="page-shell">
+  <div class="mx-auto flex w-full max-w-4xl flex-col gap-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div class="flex flex-col gap-2">
+        <span class="accent-pill">Onboarding</span>
+        <h1 class="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">
+          Configura tu perfil
+        </h1>
+        <p class="text-sm text-slate-600 dark:text-slate-300">
+          En unos pasos dejaremos lista tu experiencia inicial.
+        </p>
+      </div>
+      <button type="button" class="quiet-button" (click)="skipOnboarding()" [disabled]="isSaving">
+        Saltar por ahora
+      </button>
+    </div>
+
+    @if (errorMessage) {
+      <div class="rounded-2xl border border-rose-200/70 bg-rose-50/80 px-5 py-4 text-sm text-rose-700 shadow-sm dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
+        {{ errorMessage }}
+      </div>
+    }
+
+    <div class="glass-card">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+            Paso {{ currentStep + 1 }} de {{ steps.length }}
+          </p>
+          <h2 class="mt-1 text-lg font-semibold text-slate-900 dark:text-white">
+            {{ steps[currentStep].title }}
+          </h2>
+          <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+            {{ steps[currentStep].description }}
+          </p>
+        </div>
+        <div class="w-32">
+          <div class="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+            <div class="h-full rounded-full bg-brand-500 transition-all duration-300" [style.width]="progressWidth"></div>
+          </div>
+          <p class="mt-1 text-right text-xs text-slate-500 dark:text-slate-400">{{ progressWidth }}</p>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        @if (currentStep === 0) {
+          <div class="space-y-4">
+            <p class="text-sm text-slate-600 dark:text-slate-300">
+              Necesitamos algunos datos para calcular tu presupuesto real y generar alertas utiles.
+            </p>
+            <div class="grid gap-3 sm:grid-cols-2">
+              <div class="rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3 text-sm text-slate-600 dark:border-slate-800/70 dark:bg-slate-900/50 dark:text-slate-300">
+                Sueldo y dia de pago
+              </div>
+              <div class="rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3 text-sm text-slate-600 dark:border-slate-800/70 dark:bg-slate-900/50 dark:text-slate-300">
+                Gastos fijos recurrentes
+              </div>
+              <div class="rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3 text-sm text-slate-600 dark:border-slate-800/70 dark:bg-slate-900/50 dark:text-slate-300">
+                Resumen de disponible mensual
+              </div>
+              <div class="rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3 text-sm text-slate-600 dark:border-slate-800/70 dark:bg-slate-900/50 dark:text-slate-300">
+                Todo editable en Perfil
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (currentStep === 1) {
+          <form [formGroup]="profileForm" class="grid gap-4 sm:grid-cols-2">
+            <div class="sm:col-span-2">
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Correo</label>
+              <div class="mt-1 rounded-xl border border-slate-200/70 bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:border-slate-800/70 dark:bg-slate-900/60 dark:text-slate-300">
+                {{ userEmail }}
+              </div>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Nombre completo</label>
+              <input
+                type="text"
+                class="input-field mt-1"
+                formControlName="fullName"
+                placeholder="Tu nombre"
+              />
+            </div>
+            <div>
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Sueldo mensual</label>
+              <input
+                type="number"
+                min="0"
+                class="input-field mt-1"
+                formControlName="monthlySalary"
+              />
+            </div>
+            <div>
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Dia de pago (1-31)</label>
+              <input
+                type="number"
+                min="1"
+                max="31"
+                class="input-field mt-1"
+                formControlName="salaryDay"
+              />
+            </div>
+            <div>
+              <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Moneda</label>
+              <select class="select-field mt-1" formControlName="currency">
+                <option value="CLP">CLP</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+              </select>
+            </div>
+          </form>
+        }
+
+        @if (currentStep === 2) {
+          <div class="space-y-4">
+            <form [formGroup]="expenseForm" (ngSubmit)="addFixedExpense()" class="grid gap-3 sm:grid-cols-4">
+              <div class="sm:col-span-2">
+                <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Descripcion</label>
+                <input
+                  type="text"
+                  class="input-field mt-1"
+                  formControlName="description"
+                  placeholder="Arriendo, internet..."
+                />
+              </div>
+              <div>
+                <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Monto</label>
+                <input
+                  type="number"
+                  min="0"
+                  class="input-field mt-1"
+                  formControlName="amount"
+                />
+              </div>
+              <div>
+                <label class="text-sm font-medium text-slate-700 dark:text-slate-300">Dia de cobro</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="31"
+                  class="input-field mt-1"
+                  formControlName="dueDay"
+                />
+              </div>
+              <div class="flex items-end justify-between gap-3 sm:col-span-4">
+                <label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                  <input type="checkbox" class="h-4 w-4" formControlName="isActive" />
+                  Activo
+                </label>
+                <button type="submit" class="primary-button">Agregar gasto fijo</button>
+              </div>
+            </form>
+
+            @if (!fixedExpenses.length) {
+              <div class="rounded-xl border border-dashed border-slate-200/70 bg-white/60 px-4 py-4 text-sm text-slate-500 dark:border-slate-800/70 dark:bg-slate-900/40 dark:text-slate-300">
+                No has agregado gastos fijos aun.
+              </div>
+            } @else {
+              <ul class="space-y-2">
+                @for (expense of fixedExpenses; track $index) {
+                  <li class="flex items-center justify-between rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3 text-sm text-slate-700 dark:border-slate-800/70 dark:bg-slate-900/50 dark:text-slate-200">
+                    <div class="flex flex-col">
+                      <span class="font-semibold">{{ expense.description }}</span>
+                      <span class="text-xs text-slate-500 dark:text-slate-400">
+                        Dia {{ expense.dueDay ?? 1 }} · {{ expense.isActive === false ? 'Inactivo' : 'Activo' }}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                      <span class="font-semibold">{{ expense.amount }}</span>
+                      <button type="button" class="text-xs text-rose-500 hover:text-rose-400" (click)="removeFixedExpense($index)">
+                        Quitar
+                      </button>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
+
+        @if (currentStep === 3) {
+          <div class="space-y-4">
+            <div class="grid gap-4 sm:grid-cols-3">
+              <div class="rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3 dark:border-slate-800/70 dark:bg-slate-900/50">
+                <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Sueldo mensual</p>
+                <p class="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{{ monthlySalary }}</p>
+              </div>
+              <div class="rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3 dark:border-slate-800/70 dark:bg-slate-900/50">
+                <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Gastos fijos</p>
+                <p class="mt-1 text-lg font-semibold text-slate-900 dark:text-white">{{ totalFixedExpenses }}</p>
+              </div>
+              <div class="rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3 dark:border-slate-800/70 dark:bg-slate-900/50">
+                <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Disponible estimado</p>
+                <p class="mt-1 text-lg font-semibold" [ngClass]="availableBalance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'">
+                  {{ availableBalance }}
+                </p>
+              </div>
+            </div>
+            <div class="rounded-xl border border-slate-200/70 bg-white/70 px-4 py-4 text-sm text-slate-600 dark:border-slate-800/70 dark:bg-slate-900/50 dark:text-slate-300">
+              Puedes ajustar estos datos en cualquier momento desde Perfil.
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200/70 pt-4 dark:border-slate-800/70">
+        <button
+          type="button"
+          class="ghost-button"
+          (click)="previousStep()"
+          [disabled]="currentStep === 0 || isSaving"
+        >
+          Atras
+        </button>
+        <div class="flex items-center gap-3">
+          @if (currentStep < steps.length - 1) {
+            <button type="button" class="primary-button" (click)="nextStep()" [disabled]="isSaving">
+              Continuar
+            </button>
+          } @else {
+            <button type="button" class="primary-button" (click)="finishOnboarding()" [disabled]="isSaving">
+              Finalizar
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

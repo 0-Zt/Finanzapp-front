@@ -47,6 +47,7 @@ export interface UserProfile {
   monthly_salary: number;
   salary_day: number;
   currency: string;
+  onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -110,6 +111,7 @@ export interface UpdateProfilePayload {
   monthlySalary?: number;
   salaryDay?: number;
   currency?: string;
+  onboardingCompleted?: boolean;
 }
 
 export interface CreateFixedExpensePayload {
@@ -126,4 +128,41 @@ export interface UpdateFixedExpensePayload {
   categoryId?: number;
   dueDay?: number;
   isActive?: boolean;
+}
+
+export interface ApiBudgetProgress {
+  id: number;
+  category_id: number;
+  category_name: string;
+  category_icon: string;
+  category_color: string;
+  budget_amount: number;
+  spent_amount: number;
+  remaining_amount: number;
+  percentage: number;
+  status: 'safe' | 'warning' | 'exceeded';
+}
+
+export interface ApiBudgetSummary {
+  total_budget: number;
+  total_spent: number;
+  budgets: ApiBudgetProgress[];
+}
+
+export interface ApiCategoryBudget {
+  id: number;
+  user_id: string;
+  category_id: number;
+  budget_amount: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateCategoryBudgetPayload {
+  category_id: number;
+  budget_amount: number;
+}
+
+export interface UpdateCategoryBudgetPayload {
+  budget_amount?: number;
 }

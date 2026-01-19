@@ -15,6 +15,7 @@ import { TransactionsCardComponent } from '../../components/transactions-card/tr
 import { DashboardService } from '../../services/dashboard.service';
 import { TransactionsService } from '../../services/transactions.service';
 import { ToastService } from '../../services/toast.service';
+import { CategoryBudgetsService } from '../../services/category-budgets.service';
 import {
   ApiExpenseCategory,
   ApiTransaction,
@@ -23,9 +24,11 @@ import {
   UpdateTransactionPayload,
   UserProfile,
   FixedExpense,
+  ApiBudgetSummary,
 } from '../../models/api.models';
 import { TransactionFormComponent } from '../../components/transaction-form/transaction-form.component';
 import { CategoryBreakdownComponent } from '../../components/category-breakdown/category-breakdown.component';
+import { BudgetSummaryCardComponent } from '../../components/budget-summary-card/budget-summary-card.component';
 import { SkeletonCardComponent } from '../../components/skeleton/skeleton-card.component';
 import { SkeletonTransactionComponent } from '../../components/skeleton/skeleton-transaction.component';
 
@@ -41,6 +44,7 @@ const TRANSACTION_PAGE_SIZE = 6;
     TransactionsCardComponent,
     TransactionFormComponent,
     CategoryBreakdownComponent,
+    BudgetSummaryCardComponent,
     SkeletonCardComponent,
     SkeletonTransactionComponent,
   ],
@@ -50,6 +54,7 @@ export class DashboardPageComponent implements OnInit {
   private readonly document = inject(DOCUMENT);
   private readonly dashboardService = inject(DashboardService);
   private readonly transactionsService = inject(TransactionsService);
+  private readonly categoryBudgetsService = inject(CategoryBudgetsService);
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -80,6 +85,7 @@ export class DashboardPageComponent implements OnInit {
   reportPeriod: 'monthly' | 'yearly' = 'monthly';
   userProfile: UserProfile | null = null;
   fixedExpenses: FixedExpense[] = [];
+  budgetSummary: ApiBudgetSummary | null = null;
 
   private readonly currencyFormatter = new Intl.NumberFormat('es-CL', {
     style: 'currency',
@@ -91,6 +97,20 @@ export class DashboardPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadDashboard();
+    this.loadBudgetSummary();
+  }
+
+  private loadBudgetSummary(): void {
+    this.categoryBudgetsService.getProgress()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (summary) => {
+          this.budgetSummary = summary;
+        },
+        error: () => {
+          // Silent fail - budgets are optional
+        },
+      });
   }
 
   onAddTransaction(): void {
@@ -116,6 +136,7 @@ export class DashboardPageComponent implements OnInit {
           this.isFormOpen = false;
           this.toastService.success('Transaccion creada correctamente');
           this.loadDashboard();
+          this.loadBudgetSummary();
         },
         error: () => {
           this.toastService.error('No se pudo guardar la transaccion');
@@ -136,6 +157,7 @@ export class DashboardPageComponent implements OnInit {
           this.formMode = 'create';
           this.toastService.success('Transaccion actualizada correctamente');
           this.loadDashboard();
+          this.loadBudgetSummary();
         },
         error: () => {
           this.toastService.error('No se pudo actualizar la transaccion');
@@ -173,6 +195,7 @@ export class DashboardPageComponent implements OnInit {
         next: () => {
           this.toastService.success('Transaccion eliminada correctamente');
           this.loadDashboard();
+          this.loadBudgetSummary();
         },
         error: () => {
           this.toastService.error('No se pudo eliminar la transaccion');

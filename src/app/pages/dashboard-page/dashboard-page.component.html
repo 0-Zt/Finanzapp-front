@@ -92,7 +92,7 @@
     }
   </section>
 
-  <section class="grid gap-8">
+  <section class="grid gap-8 lg:grid-cols-2">
     @if (isLoading) {
       <!-- Skeleton para categorias -->
       <div class="glass-card">
@@ -117,6 +117,19 @@
           </div>
         </div>
       </div>
+      <!-- Skeleton para presupuestos -->
+      <div class="glass-card">
+        <div class="flex flex-wrap items-start justify-between gap-6">
+          <div class="flex flex-col gap-2">
+            <div class="h-6 w-40 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+            <div class="h-4 w-56 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+          </div>
+        </div>
+        <div class="mt-6 space-y-4">
+          <div class="h-24 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-700"></div>
+          <div class="h-16 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-700"></div>
+        </div>
+      </div>
     } @else {
       <app-category-breakdown
         [items]="categoryBreakdown"
@@ -127,6 +140,10 @@
             : 'Distribución de gastos del año actual.'
         "
       ></app-category-breakdown>
+
+      <app-budget-summary-card
+        [summary]="budgetSummary"
+      ></app-budget-summary-card>
     }
   </section>
 </section>

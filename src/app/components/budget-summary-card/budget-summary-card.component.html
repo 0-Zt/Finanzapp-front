@@ -1,0 +1,138 @@
+<article class="glass-card animate-fade-up">
+  <header class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Presupuestos</h2>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+        Control de gastos del mes
+      </p>
+    </div>
+    <a
+      routerLink="/profile"
+      class="filter-chip hover:bg-slate-100 dark:hover:bg-slate-700"
+    >
+      Ver todos
+    </a>
+  </header>
+
+  @if (!summary || summary.budgets.length === 0) {
+    <div class="mt-6 text-sm text-slate-500 dark:text-slate-300">
+      <p>No hay presupuestos configurados.</p>
+      <a
+        routerLink="/profile"
+        class="mt-2 inline-block text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+      >
+        Configurar presupuestos
+      </a>
+    </div>
+  } @else {
+    <div class="mt-6 space-y-4">
+      <!-- Overall Progress -->
+      <div class="rounded-xl border border-slate-200/70 bg-white/50 p-4 dark:border-slate-700/50 dark:bg-slate-800/50">
+        <div class="flex items-center justify-between">
+          <span class="text-sm font-medium text-slate-600 dark:text-slate-300">Total gastado</span>
+          <span class="text-lg font-semibold text-slate-900 dark:text-white">
+            {{ formatCurrency(summary.total_spent) }}
+          </span>
+        </div>
+        <div class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+          de {{ formatCurrency(summary.total_budget) }} presupuestado
+        </div>
+        <div class="mt-3">
+          <div class="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+            <div
+              class="h-full rounded-full transition-all duration-500"
+              [ngClass]="statusClasses"
+              [style.width]="progressWidth"
+            ></div>
+          </div>
+          <div class="mt-1.5 text-right text-xs text-slate-500 dark:text-slate-400">
+            {{ totalPercentage }}%
+          </div>
+        </div>
+      </div>
+
+      <!-- Alerts -->
+      @if (hasAlerts) {
+        <div class="space-y-2">
+          <h3 class="text-sm font-medium text-slate-700 dark:text-slate-300">Alertas</h3>
+          @for (budget of alertBudgets; track budget.id) {
+            <div class="flex items-center gap-3 rounded-xl border border-slate-200/70 bg-white/50 px-3 py-2 dark:border-slate-700/50 dark:bg-slate-800/50">
+              <div
+                class="flex h-8 w-8 items-center justify-center rounded-lg"
+                [style.backgroundColor]="budget.category_color + '20'"
+              >
+                <app-category-icon
+                  [icon]="budget.category_icon"
+                  [size]="16"
+                  [ariaLabel]="budget.category_name"
+                  [style.color]="budget.category_color"
+                ></app-category-icon>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="truncate text-sm font-medium text-slate-900 dark:text-white">
+                  {{ budget.category_name }}
+                </p>
+                <p class="text-xs" [ngClass]="getAlertClasses(budget.status)">
+                  @if (budget.status === 'exceeded') {
+                    Excedido por {{ formatCurrency(budget.spent_amount - budget.budget_amount) }}
+                  } @else {
+                    {{ budget.percentage.toFixed(0) }}% del presupuesto usado
+                  }
+                </p>
+              </div>
+              @if (budget.status === 'exceeded') {
+                <svg
+                  class="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  [ngClass]="getAlertClasses(budget.status)"
+                >
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <path d="M12 7v5"></path>
+                  <path d="M12 16h.01"></path>
+                </svg>
+              } @else {
+                <svg
+                  class="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  [ngClass]="getAlertClasses(budget.status)"
+                >
+                  <path d="M12 9v3.75"></path>
+                  <path d="M12 16.5h.01"></path>
+                  <path d="M10.3 3.86 2.8 17a1.5 1.5 0 0 0 1.3 2.25h15.8A1.5 1.5 0 0 0 21.2 17l-7.5-13a1.5 1.5 0 0 0-2.6 0Z"></path>
+                </svg>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="flex items-center gap-3 rounded-xl border border-emerald-200/70 bg-emerald-50/50 px-4 py-3 dark:border-emerald-800/50 dark:bg-emerald-900/20">
+          <svg
+            class="h-6 w-6 text-emerald-600 dark:text-emerald-400"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="m9 12.75 2.25 2.25L15 9.75"></path>
+          </svg>
+          <p class="text-sm text-emerald-700 dark:text-emerald-300">
+            Todos los presupuestos estan bajo control
+          </p>
+        </div>
+      }
+    </div>
+  }
+</article>
