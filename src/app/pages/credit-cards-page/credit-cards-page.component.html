@@ -1,0 +1,599 @@
+<section class="page-shell">
+  <!-- HEADER -->
+  <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      @if (activeView === 'cards') {
+        <h1 class="text-3xl font-semibold text-slate-900 dark:text-white">Tarjetas de crédito</h1>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+          Administra tus tarjetas y controla tus gastos.
+        </p>
+      } @else {
+        <button
+          type="button"
+          class="mb-2 flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+          (click)="onBackToCards()"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+          Volver a tarjetas
+        </button>
+        <h1 class="text-3xl font-semibold text-slate-900 dark:text-white">{{ selectedCard?.name }}</h1>
+        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+          {{ selectedCard?.bank_name }} {{ formatCardNumber(selectedCard?.last_four_digits) }}
+        </p>
+      }
+    </div>
+    <div class="flex gap-2">
+      @if (activeView === 'cards') {
+        <button type="button" class="primary-button" (click)="onOpenCreateCard()">Nueva tarjeta</button>
+      } @else {
+        <button type="button" class="ghost-button" (click)="onOpenCreatePayment()">Registrar pago</button>
+        <button type="button" class="primary-button" (click)="onOpenCreateTransaction()">Nuevo gasto</button>
+      }
+    </div>
+  </header>
+
+  <!-- LOADING -->
+  @if (isLoading) {
+    <div class="rounded-2xl border border-slate-200/70 bg-white/70 px-5 py-4 text-sm text-slate-600 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/50 dark:text-slate-200">
+      Cargando...
+    </div>
+  }
+
+  <!-- ERROR -->
+  @if (errorMessage) {
+    <div class="rounded-2xl border border-rose-200/70 bg-rose-50/80 px-5 py-4 text-sm text-rose-700 shadow-sm dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
+      {{ errorMessage }}
+    </div>
+  }
+
+  <!-- CARD FORM -->
+  @if (activeForm === 'card') {
+    <section class="glass-card">
+      <header class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-xl font-semibold text-slate-900 dark:text-white">
+            {{ formMode === 'edit' ? 'Editar tarjeta' : 'Nueva tarjeta' }}
+          </h2>
+          <p class="text-sm text-slate-600 dark:text-slate-300">
+            Ingresa los datos de tu tarjeta de crédito.
+          </p>
+        </div>
+        <button type="button" class="quiet-button" (click)="onCloseForm()">Cerrar</button>
+      </header>
+
+      <form class="mt-6 grid gap-4" (ngSubmit)="onSubmitCard()">
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            Nombre de la tarjeta
+            <input
+              type="text"
+              name="name"
+              required
+              [(ngModel)]="cardForm.name"
+              class="input-field"
+              placeholder="Ej. Visa Gold Personal"
+            />
+          </label>
+
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            Banco emisor
+            <input
+              type="text"
+              name="bank_name"
+              required
+              [(ngModel)]="cardForm.bank_name"
+              class="input-field"
+              placeholder="Ej. Banco Santander"
+            />
+          </label>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-3">
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            Últimos 4 dígitos
+            <input
+              type="text"
+              name="last_four_digits"
+              maxlength="4"
+              [(ngModel)]="cardForm.last_four_digits"
+              class="input-field"
+              placeholder="1234"
+            />
+          </label>
+
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            Tipo de tarjeta
+            <select name="card_type" [(ngModel)]="cardForm.card_type" class="input-field">
+              @for (type of cardTypes; track type.value) {
+                <option [value]="type.value">{{ type.label }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            Límite de crédito
+            <input
+              type="number"
+              name="credit_limit"
+              min="0"
+              step="1000"
+              [(ngModel)]="cardForm.credit_limit"
+              class="input-field"
+              placeholder="0"
+            />
+          </label>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            Día de corte
+            <input
+              type="number"
+              name="billing_cycle_day"
+              min="1"
+              max="31"
+              [(ngModel)]="cardForm.billing_cycle_day"
+              class="input-field"
+              placeholder="15"
+            />
+          </label>
+
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            Día de pago
+            <input
+              type="number"
+              name="payment_due_day"
+              min="1"
+              max="31"
+              [(ngModel)]="cardForm.payment_due_day"
+              class="input-field"
+              placeholder="25"
+            />
+          </label>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <span class="text-sm font-medium text-slate-700 dark:text-slate-200">Color de la tarjeta</span>
+          <div class="flex flex-wrap gap-2">
+            @for (color of cardColors; track color) {
+              <button
+                type="button"
+                class="h-8 w-8 rounded-lg border-2 transition-all"
+                [style.background-color]="color"
+                [class.border-white]="cardForm.color === color"
+                [class.border-transparent]="cardForm.color !== color"
+                [class.ring-2]="cardForm.color === color"
+                [class.ring-offset-2]="cardForm.color === color"
+                [class.ring-slate-400]="cardForm.color === color"
+                (click)="selectColor(color)"
+              ></button>
+            }
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-3 pt-2">
+          <button type="submit" class="primary-button">
+            {{ formMode === 'edit' ? 'Guardar cambios' : 'Crear tarjeta' }}
+          </button>
+          <button type="button" class="ghost-button" (click)="onCloseForm()">Cancelar</button>
+        </div>
+      </form>
+    </section>
+  }
+
+  <!-- TRANSACTION FORM -->
+  @if (activeForm === 'transaction') {
+    <section class="glass-card">
+      <header class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Nuevo gasto</h2>
+          <p class="text-sm text-slate-600 dark:text-slate-300">
+            Registra un gasto en tu tarjeta de crédito.
+          </p>
+        </div>
+        <button type="button" class="quiet-button" (click)="onCloseForm()">Cerrar</button>
+      </header>
+
+      <form class="mt-6 grid gap-4" (ngSubmit)="onSubmitTransaction()">
+        @if (!selectedCard) {
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            Tarjeta
+            <select name="credit_card_id" required [(ngModel)]="transactionForm.credit_card_id" class="input-field">
+              <option [ngValue]="null" disabled>Selecciona una tarjeta</option>
+              @for (card of cards; track card.id) {
+                <option [ngValue]="card.id">{{ card.name }} - {{ card.bank_name }}</option>
+              }
+            </select>
+          </label>
+        }
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            Fecha
+            <input
+              type="date"
+              name="transaction_date"
+              required
+              [(ngModel)]="transactionForm.transaction_date"
+              class="input-field"
+            />
+          </label>
+
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            Monto
+            <input
+              type="number"
+              name="amount"
+              required
+              min="0"
+              step="0.01"
+              [(ngModel)]="transactionForm.amount"
+              class="input-field"
+              placeholder="0.00"
+            />
+          </label>
+        </div>
+
+        <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+          Descripción
+          <input
+            type="text"
+            name="description"
+            required
+            [(ngModel)]="transactionForm.description"
+            class="input-field"
+            placeholder="Ej. Compra en supermercado"
+          />
+        </label>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            Categoría
+            <select name="category_id" [(ngModel)]="transactionForm.category_id" class="input-field">
+              <option [ngValue]="null">Sin categoría</option>
+              @for (category of categories; track category.id) {
+                <option [ngValue]="category.id">{{ category.name }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            Cuotas
+            <input
+              type="number"
+              name="installments"
+              min="1"
+              max="48"
+              [(ngModel)]="transactionForm.installments"
+              class="input-field"
+              placeholder="1"
+            />
+          </label>
+        </div>
+
+        <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+          Notas (opcional)
+          <input
+            type="text"
+            name="notes"
+            [(ngModel)]="transactionForm.notes"
+            class="input-field"
+            placeholder="Notas adicionales..."
+          />
+        </label>
+
+        <div class="flex flex-wrap gap-3 pt-2">
+          <button type="submit" class="primary-button">Registrar gasto</button>
+          <button type="button" class="ghost-button" (click)="onCloseForm()">Cancelar</button>
+        </div>
+      </form>
+    </section>
+  }
+
+  <!-- PAYMENT FORM -->
+  @if (activeForm === 'payment') {
+    <section class="glass-card">
+      <header class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Registrar pago</h2>
+          <p class="text-sm text-slate-600 dark:text-slate-300">
+            Registra un pago a tu tarjeta de crédito.
+          </p>
+        </div>
+        <button type="button" class="quiet-button" (click)="onCloseForm()">Cerrar</button>
+      </header>
+
+      <form class="mt-6 grid gap-4" (ngSubmit)="onSubmitPayment()">
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            Fecha de pago
+            <input
+              type="date"
+              name="payment_date"
+              required
+              [(ngModel)]="paymentForm.payment_date"
+              class="input-field"
+            />
+          </label>
+
+          <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+            Monto a pagar
+            <input
+              type="number"
+              name="amount"
+              required
+              min="0"
+              step="0.01"
+              [(ngModel)]="paymentForm.amount"
+              class="input-field"
+              placeholder="0.00"
+            />
+          </label>
+        </div>
+
+        <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+          Tipo de pago
+          <select name="payment_type" [(ngModel)]="paymentForm.payment_type" class="input-field">
+            <option value="full">Pago total</option>
+            <option value="minimum">Pago mínimo</option>
+            <option value="partial">Pago parcial</option>
+          </select>
+        </label>
+
+        <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+          Notas (opcional)
+          <input
+            type="text"
+            name="notes"
+            [(ngModel)]="paymentForm.notes"
+            class="input-field"
+            placeholder="Notas adicionales..."
+          />
+        </label>
+
+        <div class="flex flex-wrap gap-3 pt-2">
+          <button type="submit" class="primary-button">Registrar pago</button>
+          <button type="button" class="ghost-button" (click)="onCloseForm()">Cancelar</button>
+        </div>
+      </form>
+    </section>
+  }
+
+  <!-- CARDS VIEW -->
+  @if (activeView === 'cards' && !isLoading) {
+    <!-- SUMMARY -->
+    @if (cards.length) {
+      <section class="glass-card">
+        <header>
+          <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Resumen general</h2>
+          <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+            Estado consolidado de todas tus tarjetas.
+          </p>
+        </header>
+        <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div class="rounded-xl bg-slate-100/80 p-4 dark:bg-slate-800/50">
+            <p class="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Tarjetas</p>
+            <p class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">{{ totals.card_count }}</p>
+          </div>
+          <div class="rounded-xl bg-slate-100/80 p-4 dark:bg-slate-800/50">
+            <p class="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Deuda total</p>
+            <p class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
+              {{ totals.total_balance | number: '1.0-0' }}
+            </p>
+          </div>
+          <div class="rounded-xl bg-slate-100/80 p-4 dark:bg-slate-800/50">
+            <p class="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Disponible</p>
+            <p class="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+              {{ totals.total_available | number: '1.0-0' }}
+            </p>
+          </div>
+          <div class="rounded-xl bg-slate-100/80 p-4 dark:bg-slate-800/50">
+            <p class="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Utilización</p>
+            <p class="mt-1 text-2xl font-bold" [ngClass]="getUtilizationTextClass(totalUtilization)">
+              {{ totalUtilization }}%
+            </p>
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- CARDS LIST -->
+    <section class="glass-card">
+      <header class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Mis tarjetas</h2>
+          <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+            {{ cards.length ? 'Selecciona una tarjeta para ver sus movimientos.' : 'No tienes tarjetas registradas.' }}
+          </p>
+        </div>
+      </header>
+
+      @if (!cards.length) {
+        <div class="mt-6 text-sm text-slate-500 dark:text-slate-300">
+          Agrega tu primera tarjeta de crédito para comenzar a registrar gastos.
+        </div>
+      } @else {
+        <div class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          @for (card of cards; track card.id) {
+            <article
+              class="group relative cursor-pointer overflow-hidden rounded-2xl p-5 text-white shadow-lg transition-transform hover:scale-[1.02]"
+              [style.background]="'linear-gradient(135deg, ' + card.color + ' 0%, ' + card.color + 'dd 100%)'"
+              (click)="onSelectCard(card)"
+            >
+              <!-- Card Actions -->
+              <div class="absolute right-3 top-3 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                <button
+                  type="button"
+                  class="rounded-lg bg-white/20 p-1.5 text-white/90 backdrop-blur-sm hover:bg-white/30"
+                  (click)="onEditCard(card); $event.stopPropagation()"
+                  title="Editar"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="rounded-lg bg-white/20 p-1.5 text-white/90 backdrop-blur-sm hover:bg-rose-500/80"
+                  (click)="onDeleteCard(card); $event.stopPropagation()"
+                  title="Eliminar"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Card Type Icon -->
+              <div class="mb-6 flex items-center justify-between">
+                <span class="text-sm font-medium uppercase tracking-wider opacity-80">{{ card.card_type }}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                </svg>
+              </div>
+
+              <!-- Card Number -->
+              <p class="mb-4 font-mono text-lg tracking-widest opacity-90">
+                {{ formatCardNumber(card.last_four_digits) }}
+              </p>
+
+              <!-- Card Info -->
+              <div class="mb-4">
+                <p class="text-lg font-semibold">{{ card.name }}</p>
+                <p class="text-sm opacity-80">{{ card.bank_name }}</p>
+              </div>
+
+              <!-- Balance Info -->
+              <div class="flex items-end justify-between">
+                <div>
+                  <p class="text-xs uppercase tracking-wide opacity-70">Saldo usado</p>
+                  <p class="text-xl font-bold">{{ card.current_balance | number: '1.0-0' }}</p>
+                </div>
+                <div class="text-right">
+                  <p class="text-xs uppercase tracking-wide opacity-70">Disponible</p>
+                  <p class="text-lg font-semibold">{{ card.available_credit | number: '1.0-0' }}</p>
+                </div>
+              </div>
+
+              <!-- Utilization Bar -->
+              <div class="mt-4">
+                <div class="h-1.5 w-full rounded-full bg-white/30">
+                  <div
+                    class="h-full rounded-full bg-white/90 transition-all"
+                    [style.width.%]="card.utilization_percentage"
+                  ></div>
+                </div>
+                <p class="mt-1 text-right text-xs opacity-70">{{ card.utilization_percentage | number: '1.0-1' }}% utilizado</p>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+
+  <!-- TRANSACTIONS VIEW -->
+  @if (activeView === 'transactions' && selectedCard && !isLoading) {
+    <!-- CARD SUMMARY -->
+    <section class="glass-card">
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="rounded-xl bg-slate-100/80 p-4 dark:bg-slate-800/50">
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Límite</p>
+          <p class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
+            {{ selectedCard.credit_limit | number: '1.0-0' }}
+          </p>
+        </div>
+        <div class="rounded-xl bg-slate-100/80 p-4 dark:bg-slate-800/50">
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Saldo usado</p>
+          <p class="mt-1 text-2xl font-bold text-slate-900 dark:text-white">
+            {{ selectedCard.current_balance | number: '1.0-0' }}
+          </p>
+        </div>
+        <div class="rounded-xl bg-slate-100/80 p-4 dark:bg-slate-800/50">
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Disponible</p>
+          <p class="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+            {{ selectedCard.available_credit | number: '1.0-0' }}
+          </p>
+        </div>
+        <div class="rounded-xl bg-slate-100/80 p-4 dark:bg-slate-800/50">
+          <p class="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Utilización</p>
+          <p class="mt-1 text-2xl font-bold" [ngClass]="getUtilizationTextClass(selectedCard.utilization_percentage)">
+            {{ selectedCard.utilization_percentage | number: '1.0-1' }}%
+          </p>
+        </div>
+      </div>
+      <div class="mt-4 h-2 w-full rounded-full bg-slate-200/80 dark:bg-slate-800/80">
+        <span
+          class="block h-full rounded-full transition-all"
+          [ngClass]="getUtilizationClass(selectedCard.utilization_percentage)"
+          [style.width.%]="selectedCard.utilization_percentage"
+        ></span>
+      </div>
+    </section>
+
+    <!-- TRANSACTIONS LIST -->
+    <section class="glass-card">
+      <header>
+        <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Movimientos</h2>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+          {{ cardTransactions.length ? 'Historial de gastos y pagos de esta tarjeta.' : 'No hay movimientos registrados.' }}
+        </p>
+      </header>
+
+      @if (!cardTransactions.length) {
+        <div class="mt-6 text-sm text-slate-500 dark:text-slate-300">
+          Registra tu primer gasto para comenzar a llevar el control.
+        </div>
+      } @else {
+        <ul class="mt-6 flex flex-col gap-3">
+          @for (transaction of cardTransactions; track transaction.id) {
+            <li class="list-card flex items-center justify-between">
+              <div class="flex-1">
+                <div class="flex items-center gap-2">
+                  <h3 class="text-base font-medium text-slate-900 dark:text-white">
+                    {{ transaction.description }}
+                  </h3>
+                  @if (transaction.installments > 1) {
+                    <span class="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                      {{ transaction.current_installment }}/{{ transaction.installments }}
+                    </span>
+                  }
+                </div>
+                <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                  <span>{{ transaction.transaction_date }}</span>
+                  <span class="text-slate-300 dark:text-slate-600">•</span>
+                  <span>{{ getCategoryName(transaction.category_id) }}</span>
+                  @if (transaction.status === 'pending') {
+                    <span class="rounded bg-amber-100 px-1.5 py-0.5 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400">
+                      Pendiente
+                    </span>
+                  }
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span
+                  class="text-lg font-semibold"
+                  [ngClass]="transaction.amount < 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'"
+                >
+                  {{ transaction.amount < 0 ? '+' : '-' }}{{ (transaction.amount < 0 ? -transaction.amount : transaction.amount) | number: '1.0-0' }}
+                </span>
+                <button
+                  type="button"
+                  class="text-slate-400 hover:text-rose-500"
+                  (click)="onDeleteTransaction(transaction)"
+                  title="Eliminar"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</section>

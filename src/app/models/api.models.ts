@@ -207,3 +207,142 @@ export interface UpdateCategoryBudgetPayload {
   budget_amount?: number;
   rollover_enabled?: boolean;
 }
+
+// ==================== CREDIT CARDS ====================
+
+export interface ApiCreditCard {
+  id: number;
+  user_id: string;
+  name: string;
+  bank_name: string;
+  last_four_digits?: string | null;
+  card_type: string;
+  credit_limit: number;
+  current_balance: number;
+  billing_cycle_day?: number | null;
+  payment_due_day?: number | null;
+  minimum_payment_percentage: number;
+  interest_rate: number;
+  currency: string;
+  color: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiCreditCardWithSummary extends ApiCreditCard {
+  available_credit: number;
+  utilization_percentage: number;
+}
+
+export interface ApiCreditCardTransaction {
+  id: number;
+  user_id: string;
+  credit_card_id: number;
+  transaction_date: string;
+  description: string;
+  amount: number;
+  category_id?: number | null;
+  status: string;
+  installments: number;
+  current_installment: number;
+  installment_amount?: number | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ApiCreditCardPayment {
+  id: number;
+  user_id: string;
+  credit_card_id: number;
+  payment_date: string;
+  amount: number;
+  payment_type: string;
+  notes?: string | null;
+  created_at: string;
+}
+
+export interface CreditCardsSummary {
+  cards: ApiCreditCardWithSummary[];
+  totals: {
+    total_balance: number;
+    total_limit: number;
+    total_available: number;
+    card_count: number;
+  };
+}
+
+export interface CreditCardDetailSummary {
+  card: ApiCreditCard;
+  summary: {
+    current_balance: number;
+    credit_limit: number;
+    available_credit: number;
+    utilization_percentage: number;
+    total_spent_period: number;
+    total_payments_period: number;
+    transaction_count: number;
+  };
+  recent_transactions: ApiCreditCardTransaction[];
+}
+
+export interface CreateCreditCardPayload {
+  name: string;
+  bank_name: string;
+  last_four_digits?: string;
+  card_type?: string;
+  credit_limit?: number;
+  billing_cycle_day?: number;
+  payment_due_day?: number;
+  minimum_payment_percentage?: number;
+  interest_rate?: number;
+  currency?: string;
+  color?: string;
+  is_active?: boolean;
+}
+
+export interface UpdateCreditCardPayload {
+  name?: string;
+  bank_name?: string;
+  last_four_digits?: string;
+  card_type?: string;
+  credit_limit?: number;
+  billing_cycle_day?: number;
+  payment_due_day?: number;
+  minimum_payment_percentage?: number;
+  interest_rate?: number;
+  currency?: string;
+  color?: string;
+  is_active?: boolean;
+}
+
+export interface CreateCardTransactionPayload {
+  credit_card_id: number;
+  transaction_date: string;
+  description: string;
+  amount: number;
+  category_id?: number;
+  status?: string;
+  installments?: number;
+  notes?: string;
+}
+
+export interface UpdateCardTransactionPayload {
+  transaction_date?: string;
+  description?: string;
+  amount?: number;
+  category_id?: number;
+  status?: string;
+  installments?: number;
+  current_installment?: number;
+  notes?: string;
+}
+
+export interface CreateCardPaymentPayload {
+  credit_card_id: number;
+  payment_date: string;
+  amount: number;
+  payment_type?: string;
+  notes?: string;
+}
