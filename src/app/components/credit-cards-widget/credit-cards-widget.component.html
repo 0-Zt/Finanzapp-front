@@ -1,0 +1,139 @@
+<article class="glass-card">
+  <header class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Tarjetas de crédito</h2>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+        Resumen de tus tarjetas y próximos vencimientos.
+      </p>
+    </div>
+    <a
+      routerLink="/credit-cards"
+      class="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
+    >
+      Ver todas
+    </a>
+  </header>
+
+  @if (isLoading) {
+    <!-- Skeleton -->
+    <div class="mt-6 space-y-4">
+      <div class="h-20 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-700"></div>
+      <div class="h-16 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-700"></div>
+    </div>
+  } @else if (!cards.length) {
+    <!-- Empty state -->
+    <div class="mt-6 rounded-xl border border-dashed border-slate-300 bg-slate-50/50 p-6 text-center dark:border-slate-700 dark:bg-slate-800/30">
+      <svg xmlns="http://www.w3.org/2000/svg" class="mx-auto h-10 w-10 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+      </svg>
+      <p class="mt-3 text-sm text-slate-600 dark:text-slate-400">
+        No tienes tarjetas registradas.
+      </p>
+      <a
+        routerLink="/credit-cards"
+        class="mt-3 inline-block text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400"
+      >
+        Agregar tarjeta
+      </a>
+    </div>
+  } @else {
+    <!-- Summary totals -->
+    <div class="mt-6 grid gap-3 sm:grid-cols-3">
+      <div class="rounded-xl bg-slate-100/80 p-3 dark:bg-slate-800/50">
+        <p class="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Deuda total</p>
+        <p class="mt-1 text-lg font-bold text-slate-900 dark:text-white">
+          {{ totals.total_balance | number: '1.0-0' }}
+        </p>
+      </div>
+      <div class="rounded-xl bg-slate-100/80 p-3 dark:bg-slate-800/50">
+        <p class="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Disponible</p>
+        <p class="mt-1 text-lg font-bold text-emerald-600 dark:text-emerald-400">
+          {{ totals.total_available | number: '1.0-0' }}
+        </p>
+      </div>
+      <div class="rounded-xl bg-slate-100/80 p-3 dark:bg-slate-800/50">
+        <p class="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Utilización</p>
+        <p class="mt-1 text-lg font-bold" [ngClass]="getUtilizationTextClass(totalUtilization)">
+          {{ totalUtilization }}%
+        </p>
+      </div>
+    </div>
+
+    <!-- Cards list -->
+    <ul class="mt-4 space-y-3">
+      @for (card of cards.slice(0, 3); track card.id) {
+        <li class="flex items-center gap-3 rounded-xl bg-slate-50/80 p-3 dark:bg-slate-800/30">
+          <!-- Card icon with color -->
+          <div
+            class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-white"
+            [style.background-color]="card.color"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+          </div>
+
+          <!-- Card info -->
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center justify-between gap-2">
+              <p class="truncate text-sm font-medium text-slate-900 dark:text-white">
+                {{ card.name }}
+              </p>
+              <span class="flex-shrink-0 text-sm font-semibold text-slate-900 dark:text-white">
+                {{ card.current_balance | number: '1.0-0' }}
+              </span>
+            </div>
+            <div class="mt-1 flex items-center justify-between gap-2">
+              <span class="text-xs text-slate-500 dark:text-slate-400">
+                {{ card.bank_name }} {{ formatCardNumber(card.last_four_digits) }}
+              </span>
+              <span class="text-xs" [ngClass]="getUtilizationTextClass(card.utilization_percentage)">
+                {{ card.utilization_percentage | number: '1.0-0' }}%
+              </span>
+            </div>
+            <!-- Utilization bar -->
+            <div class="mt-2 h-1 w-full rounded-full bg-slate-200 dark:bg-slate-700">
+              <div
+                class="h-full rounded-full transition-all"
+                [ngClass]="getUtilizationClass(card.utilization_percentage)"
+                [style.width.%]="card.utilization_percentage"
+              ></div>
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+
+    <!-- Upcoming payments alert -->
+    @if (cardsWithUpcomingPayments.length) {
+      <div class="mt-4 rounded-xl border border-amber-200/70 bg-amber-50/80 p-3 dark:border-amber-500/20 dark:bg-amber-500/10">
+        <div class="flex items-start gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-semibold uppercase tracking-wide text-amber-700 dark:text-amber-300">
+              Próximos vencimientos
+            </p>
+            <ul class="mt-1 space-y-1">
+              @for (card of cardsWithUpcomingPayments; track card.id) {
+                <li class="flex items-center justify-between text-sm">
+                  <span class="truncate text-slate-700 dark:text-slate-300">{{ card.name }}</span>
+                  <span class="flex-shrink-0 font-medium" [ngClass]="getPaymentUrgencyClass(card.payment_due_day)">
+                    @if (getDaysUntilPayment(card.payment_due_day) === 0) {
+                      Hoy
+                    } @else if (getDaysUntilPayment(card.payment_due_day) === 1) {
+                      Mañana
+                    } @else {
+                      En {{ getDaysUntilPayment(card.payment_due_day) }} días
+                    }
+                  </span>
+                </li>
+              }
+            </ul>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</article>

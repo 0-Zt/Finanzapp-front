@@ -146,4 +146,54 @@
       ></app-budget-summary-card>
     }
   </section>
+
+  <!-- Credit Cards Section -->
+  <section class="grid gap-8 lg:grid-cols-2">
+    <app-credit-cards-widget
+      [summary]="creditCardsSummary"
+      [isLoading]="isCreditCardsLoading"
+    ></app-credit-cards-widget>
+
+    <!-- Tips/Suggestions card -->
+    <article class="glass-card">
+      <header>
+        <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Consejos financieros</h2>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+          Recomendaciones para mejorar tu salud financiera.
+        </p>
+      </header>
+      <ul class="mt-6 space-y-3">
+        <li class="flex items-start gap-3 rounded-xl bg-slate-50/80 p-3 dark:bg-slate-800/30">
+          <span class="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </span>
+          <p class="text-sm text-slate-600 dark:text-slate-300">
+            Paga el total de tu tarjeta de crédito para evitar intereses.
+          </p>
+        </li>
+        <li class="flex items-start gap-3 rounded-xl bg-slate-50/80 p-3 dark:bg-slate-800/30">
+          <span class="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </span>
+          <p class="text-sm text-slate-600 dark:text-slate-300">
+            Mantén la utilización de crédito bajo el 30% de tu límite.
+          </p>
+        </li>
+        <li class="flex items-start gap-3 rounded-xl bg-slate-50/80 p-3 dark:bg-slate-800/30">
+          <span class="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </span>
+          <p class="text-sm text-slate-600 dark:text-slate-300">
+            Revisa tus gastos semanalmente para mantener el control.
+          </p>
+        </li>
+      </ul>
+    </article>
+  </section>
 </section>

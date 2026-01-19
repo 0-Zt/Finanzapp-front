@@ -16,6 +16,7 @@ import { DashboardService } from '../../services/dashboard.service';
 import { TransactionsService } from '../../services/transactions.service';
 import { ToastService } from '../../services/toast.service';
 import { CategoryBudgetsService } from '../../services/category-budgets.service';
+import { CreditCardsService } from '../../services/credit-cards.service';
 import {
   ApiExpenseCategory,
   ApiTransaction,
@@ -25,10 +26,12 @@ import {
   UserProfile,
   FixedExpense,
   ApiBudgetSummary,
+  CreditCardsSummary,
 } from '../../models/api.models';
 import { TransactionFormComponent } from '../../components/transaction-form/transaction-form.component';
 import { CategoryBreakdownComponent } from '../../components/category-breakdown/category-breakdown.component';
 import { BudgetSummaryCardComponent } from '../../components/budget-summary-card/budget-summary-card.component';
+import { CreditCardsWidgetComponent } from '../../components/credit-cards-widget/credit-cards-widget.component';
 import { SkeletonCardComponent } from '../../components/skeleton/skeleton-card.component';
 import { SkeletonTransactionComponent } from '../../components/skeleton/skeleton-transaction.component';
 
@@ -45,6 +48,7 @@ const TRANSACTION_PAGE_SIZE = 6;
     TransactionFormComponent,
     CategoryBreakdownComponent,
     BudgetSummaryCardComponent,
+    CreditCardsWidgetComponent,
     SkeletonCardComponent,
     SkeletonTransactionComponent,
   ],
@@ -55,6 +59,7 @@ export class DashboardPageComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
   private readonly transactionsService = inject(TransactionsService);
   private readonly categoryBudgetsService = inject(CategoryBudgetsService);
+  private readonly creditCardsService = inject(CreditCardsService);
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -86,6 +91,8 @@ export class DashboardPageComponent implements OnInit {
   userProfile: UserProfile | null = null;
   fixedExpenses: FixedExpense[] = [];
   budgetSummary: ApiBudgetSummary | null = null;
+  creditCardsSummary: CreditCardsSummary | null = null;
+  isCreditCardsLoading = true;
 
   private readonly currencyFormatter = new Intl.NumberFormat('es-CL', {
     style: 'currency',
@@ -98,6 +105,7 @@ export class DashboardPageComponent implements OnInit {
   ngOnInit(): void {
     this.loadDashboard();
     this.loadBudgetSummary();
+    this.loadCreditCardsSummary();
   }
 
   private loadBudgetSummary(): void {
@@ -109,6 +117,22 @@ export class DashboardPageComponent implements OnInit {
         },
         error: () => {
           // Silent fail - budgets are optional
+        },
+      });
+  }
+
+  private loadCreditCardsSummary(): void {
+    this.isCreditCardsLoading = true;
+    this.creditCardsService.getCardsSummary()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (summary) => {
+          this.creditCardsSummary = summary;
+          this.isCreditCardsLoading = false;
+        },
+        error: () => {
+          // Silent fail - credit cards are optional
+          this.isCreditCardsLoading = false;
         },
       });
   }
