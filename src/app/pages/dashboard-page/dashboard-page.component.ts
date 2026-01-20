@@ -368,7 +368,6 @@ export class DashboardPageComponent implements OnInit {
     const fixedExpenses = payload.fixedExpenses ?? [];
 
     const totals = this.calculateTotals(transactions);
-    const balance = totals.income - totals.expense;
     const monthlyExpense = totals.monthlyExpense;
     const expenseComparison = this.getExpenseComparison(monthlyExpense, totals.previousMonthlyExpense);
     const upcomingPayment = this.getUpcomingPayment(upcomingPayments);
@@ -382,15 +381,7 @@ export class DashboardPageComponent implements OnInit {
     const totalFixedExpenses = fixedExpenses.filter((e) => e.is_active).reduce((sum, e) => sum + e.amount, 0);
     const availableBalance = monthlySalary - totalFixedExpenses - monthlyExpense;
 
-    const cards: SummaryCard[] = [
-      {
-        title: 'Saldo general',
-        value: this.currencyFormatter.format(balance),
-        description: 'Disponible en cuentas y billeteras vinculadas.',
-        trend: balance > 0 ? 'up' : balance < 0 ? 'down' : 'neutral',
-        accent: 'emerald',
-      },
-    ];
+    const cards: SummaryCard[] = [];
 
     // Add salary card if user has a profile with salary
     if (userProfile && monthlySalary > 0) {

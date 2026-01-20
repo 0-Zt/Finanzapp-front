@@ -16,7 +16,7 @@ export class BudgetProgressBarComponent {
   private readonly currencyFormatter = new Intl.NumberFormat('es-CL', {
     style: 'currency',
     currency: 'CLP',
-    maximumFractionDigits: 0,
+    maximumFractionDigits: 0, 
   });
 
   formatCurrency(amount: number): string {

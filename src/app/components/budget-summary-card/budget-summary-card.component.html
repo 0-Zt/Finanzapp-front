@@ -1,4 +1,4 @@
-<article class="glass-card animate-fade-up">
+<article class="glass-card animate-fade-up h-full flex flex-col">
   <header class="flex flex-wrap items-start justify-between gap-4">
     <div>
       <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Presupuestos</h2>
@@ -30,7 +30,7 @@
       </a>
     </div>
   } @else {
-    <div class="mt-6 space-y-4">
+    <div class="mt-6 space-y-4 flex-1">
       <!-- Overall Progress -->
       <div class="rounded-xl border border-slate-200/70 bg-white/50 p-4 dark:border-slate-700/50 dark:bg-slate-800/50">
         <div class="flex items-center justify-between">
@@ -62,91 +62,79 @@
       </div>
 
       <!-- Alerts -->
-      @if (hasOverBudget) {
-        <div class="space-y-2">
-          <h3 class="text-sm font-medium text-slate-700 dark:text-slate-300">Excedidos</h3>
-          @for (budget of overBudgetBudgets; track budget.id) {
-            <div class="flex items-center gap-3 rounded-xl border border-rose-200/70 bg-rose-50/40 px-3 py-2 dark:border-rose-700/40 dark:bg-rose-900/20">
-              <div
-                class="flex h-8 w-8 items-center justify-center rounded-lg"
-                [style.backgroundColor]="budget.category_color + '20'"
-              >
-                <app-category-icon
-                  [icon]="budget.category_icon"
-                  [size]="16"
-                  [ariaLabel]="budget.category_name"
-                  [style.color]="budget.category_color"
-                ></app-category-icon>
+      @if (currentAlert; as alert) {
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-medium text-slate-700 dark:text-slate-300">Alertas</h3>
+            @if (hasAlertNavigation) {
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                  (click)="previousAlert()"
+                  aria-label="Anterior"
+                >
+                  <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 18l-6-6 6-6" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                  (click)="nextAlert()"
+                  aria-label="Siguiente"
+                >
+                  <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 6l6 6-6 6" />
+                  </svg>
+                </button>
               </div>
-              <div class="flex-1 min-w-0">
-                <p class="truncate text-sm font-medium text-slate-900 dark:text-white">
-                  {{ budget.category_name }}
-                </p>
-                <p class="text-xs text-rose-600 dark:text-rose-300">
-                  Excedido por {{ formatCurrency(budget.spent_amount - budget.effective_budget_amount) }}
-                </p>
-              </div>
-              <svg
-                class="h-5 w-5 text-rose-600 dark:text-rose-300"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <circle cx="12" cy="12" r="9"></circle>
-                <path d="M12 7v5"></path>
-                <path d="M12 16h.01"></path>
-              </svg>
-            </div>
-          }
-        </div>
-      }
+            }
+          </div>
 
-      @if (hasWarnings) {
-        <div class="space-y-2">
-          <h3 class="text-sm font-medium text-slate-700 dark:text-slate-300">Alertas</h3>
-          @for (budget of warningBudgets; track budget.id) {
-            <div class="flex items-center gap-3 rounded-xl border border-amber-200/70 bg-amber-50/40 px-3 py-2 dark:border-amber-700/40 dark:bg-amber-900/20">
-              <div
-                class="flex h-8 w-8 items-center justify-center rounded-lg"
-                [style.backgroundColor]="budget.category_color + '20'"
-              >
-                <app-category-icon
-                  [icon]="budget.category_icon"
-                  [size]="16"
-                  [ariaLabel]="budget.category_name"
-                  [style.color]="budget.category_color"
-                ></app-category-icon>
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="truncate text-sm font-medium text-slate-900 dark:text-white">
-                  {{ budget.category_name }}
-                </p>
-                <p class="text-xs text-amber-600 dark:text-amber-300">
-                  {{ budget.percentage.toFixed(0) }}% del presupuesto usado
-                </p>
-              </div>
-              <svg
-                class="h-5 w-5 text-amber-600 dark:text-amber-300"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M12 9v3.75"></path>
-                <path d="M12 16.5h.01"></path>
-                <path d="M10.3 3.86 2.8 17a1.5 1.5 0 0 0 1.3 2.25h15.8A1.5 1.5 0 0 0 21.2 17l-7.5-13a1.5 1.5 0 0 0-2.6 0Z"></path>
-              </svg>
+          <div
+            class="flex items-center gap-3 rounded-xl border px-3 py-2"
+            [ngClass]="alertContainerClasses(alert.kind)"
+          >
+            <div
+              class="flex h-8 w-8 items-center justify-center rounded-lg"
+              [style.backgroundColor]="alert.budget.category_color + '20'"
+            >
+              <app-category-icon
+                [icon]="alert.budget.category_icon"
+                [size]="16"
+                [ariaLabel]="alert.budget.category_name"
+                [style.color]="alert.budget.category_color"
+              ></app-category-icon>
             </div>
-          }
-        </div>
-      }
+            <div class="flex-1 min-w-0">
+              <p class="truncate text-sm font-medium text-slate-900 dark:text-white">
+                {{ alert.budget.category_name }}
+              </p>
+              @if (alert.kind === 'exceeded') {
+                <p class="text-xs" [ngClass]="alertIconClasses(alert.kind)">
+                  Excedido por {{ formatCurrency(alert.budget.spent_amount - alert.budget.effective_budget_amount) }}
+                </p>
+              } @else {
+                <p class="text-xs" [ngClass]="alertIconClasses(alert.kind)">
+                  {{ alert.budget.percentage.toFixed(0) }}% del presupuesto usado
+                </p>
+              }
+            </div>
+            <span
+              class="rounded-full px-2 py-1 text-[11px] font-semibold"
+              [ngClass]="alertIconClasses(alert.kind)"
+            >
+              {{ alert.kind === 'exceeded' ? 'Excedido' : 'Alerta' }}
+            </span>
+          </div>
 
-      @if (!hasOverBudget && !hasWarnings) {
+          <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-300">
+            <span>{{ alertIndex + 1 }} / {{ alertCount }}</span>
+            <span>Excedidos: {{ overBudgetBudgets.length }} | Alertas: {{ warningBudgets.length }}</span>
+          </div>
+        </div>
+      } @else {
         <div class="flex items-center gap-3 rounded-xl border border-emerald-200/70 bg-emerald-50/50 px-4 py-3 dark:border-emerald-800/50 dark:bg-emerald-900/20">
           <svg
             class="h-6 w-6 text-emerald-600 dark:text-emerald-400"
