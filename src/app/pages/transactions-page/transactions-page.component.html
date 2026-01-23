@@ -58,6 +58,17 @@
       </div>
     </div>
 
+    <!-- Expense Trend Chart -->
+    @if (expenseTrendData.length > 0) {
+      <div class="animate-fade-up" style="animation-delay: 40ms">
+        <app-expense-trend-chart
+          [data]="expenseTrendData"
+          title="Tendencia de gastos"
+          description="Evolución de tus gastos en los últimos 30 días."
+        ></app-expense-trend-chart>
+      </div>
+    }
+
     <!-- Filters -->
     <div class="glass-card !p-4 animate-fade-up" style="animation-delay: 60ms">
       <div class="filters-compact">
@@ -136,8 +147,8 @@
     </div>
   }
 
-  <!-- Transaction Form Modal -->
-  <app-transaction-form
+  <!-- Transaction Dialog -->
+  <app-transaction-dialog
     [categories]="categories"
     [isOpen]="isFormOpen"
     [mode]="formMode"
@@ -145,5 +156,5 @@
     (createTransaction)="onCreateTransaction($event)"
     (updateTransaction)="onUpdateTransaction($event)"
     (close)="onCloseTransactionForm()"
-  ></app-transaction-form>
+  ></app-transaction-dialog>
 </section>

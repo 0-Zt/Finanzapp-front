@@ -1,0 +1,183 @@
+<article class="glass-card">
+  <header class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h2 class="text-xl font-semibold text-slate-900 dark:text-white">{{ title }}</h2>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+        {{ description }}
+      </p>
+    </div>
+    <div class="flex items-center gap-4 text-sm font-medium text-slate-500 dark:text-slate-300">
+      <span class="flex items-center gap-2">
+        <span class="h-2.5 w-2.5 rounded-full bg-rose-400"></span>
+        Gastos
+      </span>
+      @if (showIncome) {
+        <span class="flex items-center gap-2">
+          <span class="h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
+          Ingresos
+        </span>
+      }
+    </div>
+  </header>
+
+  <div class="relative mt-6">
+    <!-- Tooltip -->
+    @if (hoveredPoint) {
+      <div
+        class="absolute z-10 px-3 py-2 text-xs font-medium rounded-lg shadow-lg bg-slate-900 text-white dark:bg-white dark:text-slate-900 pointer-events-none transition-opacity duration-150"
+        [style.left.%]="hoveredPoint.x"
+        [style.bottom.%]="100 - hoveredPoint.y + 5"
+        style="transform: translateX(-50%)"
+      >
+        <div class="font-semibold">{{ formatCurrency(hoveredPoint.value) }}</div>
+        <div class="text-slate-300 dark:text-slate-500">{{ hoveredPoint.label }}</div>
+      </div>
+    }
+
+    <!-- Chart Container -->
+    <div class="relative rounded-2xl border border-slate-200/70 bg-white/80 p-4 shadow-inner shadow-slate-200/60 backdrop-blur-md dark:border-slate-800/70 dark:bg-slate-900/70 dark:shadow-none">
+      <!-- Y-axis labels -->
+      <div class="absolute left-0 top-4 bottom-8 w-16 flex flex-col justify-between text-right pr-2">
+        @for (line of gridLines.slice().reverse(); track line) {
+          <span class="text-[10px] text-slate-400 dark:text-slate-500">
+            {{ formatCurrency(line) }}
+          </span>
+        }
+        <span class="text-[10px] text-slate-400 dark:text-slate-500">$0</span>
+      </div>
+
+      <!-- SVG Chart -->
+      <div class="ml-16">
+        <svg
+          [attr.viewBox]="'0 0 ' + chartWidth + ' ' + chartHeight"
+          class="w-full h-48 overflow-visible"
+          preserveAspectRatio="none"
+        >
+          <!-- Grid lines -->
+          @for (line of gridLines; track line) {
+            <line
+              [attr.x1]="padding.left"
+              [attr.y1]="getYPosition(line)"
+              [attr.x2]="chartWidth - padding.right"
+              [attr.y2]="getYPosition(line)"
+              class="stroke-slate-200 dark:stroke-slate-700"
+              stroke-width="0.2"
+              stroke-dasharray="1,1"
+            />
+          }
+
+          <!-- Baseline -->
+          <line
+            [attr.x1]="padding.left"
+            [attr.y1]="chartHeight - padding.bottom"
+            [attr.x2]="chartWidth - padding.right"
+            [attr.y2]="chartHeight - padding.bottom"
+            class="stroke-slate-300 dark:stroke-slate-600"
+            stroke-width="0.3"
+          />
+
+          <!-- Income area (if shown) -->
+          @if (showIncome && incomeAreaPath) {
+            <path
+              [attr.d]="incomeAreaPath"
+              class="fill-emerald-400/20 dark:fill-emerald-400/10"
+            />
+          }
+
+          <!-- Expense area -->
+          @if (expenseAreaPath) {
+            <path
+              [attr.d]="expenseAreaPath"
+              class="fill-rose-400/20 dark:fill-rose-400/10"
+            />
+          }
+
+          <!-- Income line (if shown) -->
+          @if (showIncome && incomePath) {
+            <path
+              [attr.d]="incomePath"
+              fill="none"
+              class="stroke-emerald-400"
+              stroke-width="0.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          }
+
+          <!-- Expense line -->
+          @if (expensePath) {
+            <path
+              [attr.d]="expensePath"
+              fill="none"
+              class="stroke-rose-400"
+              stroke-width="0.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          }
+
+          <!-- Income points (if shown) -->
+          @if (showIncome) {
+            @for (point of incomePoints; track point.date) {
+              <circle
+                [attr.cx]="point.x"
+                [attr.cy]="point.y"
+                r="0.8"
+                class="fill-emerald-400 stroke-white dark:stroke-slate-900 cursor-pointer transition-all duration-150 hover:r-1.2"
+                stroke-width="0.3"
+                (mouseenter)="onPointHover(point)"
+                (mouseleave)="onPointLeave()"
+              />
+            }
+          }
+
+          <!-- Expense points -->
+          @for (point of expensePoints; track point.date) {
+            <circle
+              [attr.cx]="point.x"
+              [attr.cy]="point.y"
+              r="0.8"
+              class="fill-rose-400 stroke-white dark:stroke-slate-900 cursor-pointer transition-all duration-150 hover:r-1.2"
+              stroke-width="0.3"
+              (mouseenter)="onPointHover(point)"
+              (mouseleave)="onPointLeave()"
+            />
+          }
+        </svg>
+
+        <!-- X-axis labels -->
+        <div class="flex justify-between mt-2 px-1">
+          @for (point of getVisibleLabels(); track point.date) {
+            <span class="text-[10px] text-slate-400 dark:text-slate-500">
+              {{ point.label }}
+            </span>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary stats -->
+  @if (expensePoints.length > 0) {
+    <div class="grid grid-cols-3 gap-4 mt-4">
+      <div class="text-center">
+        <div class="text-xs text-slate-500 dark:text-slate-400">Máximo</div>
+        <div class="text-sm font-semibold text-rose-600 dark:text-rose-400">
+          {{ formatCurrency(maxValue) }}
+        </div>
+      </div>
+      <div class="text-center">
+        <div class="text-xs text-slate-500 dark:text-slate-400">Promedio</div>
+        <div class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+          {{ formatCurrency(getAverageExpense()) }}
+        </div>
+      </div>
+      <div class="text-center">
+        <div class="text-xs text-slate-500 dark:text-slate-400">Mínimo</div>
+        <div class="text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+          {{ formatCurrency(getMinExpense()) }}
+        </div>
+      </div>
+    </div>
+  }
+</article>

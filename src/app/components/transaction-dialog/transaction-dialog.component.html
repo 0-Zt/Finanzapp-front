@@ -1,0 +1,85 @@
+<app-dialog
+  [isOpen]="isOpen"
+  [title]="dialogTitle"
+  [subtitle]="dialogSubtitle"
+  (close)="onClose()"
+>
+  <form class="grid gap-4" (ngSubmit)="submit()">
+    <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+      Descripción
+      <input
+        type="text"
+        name="description"
+        required
+        [(ngModel)]="formState.description"
+        class="input-field"
+        placeholder="Ej. Supermercado"
+      />
+    </label>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+        Monto
+        <input
+          type="number"
+          name="amount"
+          required
+          min="0"
+          step="0.01"
+          [(ngModel)]="formState.amount"
+          class="input-field"
+          placeholder="0.00"
+        />
+      </label>
+
+      <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+        Fecha
+        <input
+          type="date"
+          name="date"
+          required
+          [(ngModel)]="formState.date"
+          class="input-field"
+        />
+      </label>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+        Categoría
+        <select
+          name="categoryId"
+          required
+          [(ngModel)]="formState.categoryId"
+          class="select-field"
+        >
+          @for (category of categories; track category.id) {
+            <option [ngValue]="category.id">{{ category.name }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+        Tipo
+        <select
+          name="type"
+          required
+          [(ngModel)]="formState.type"
+          class="select-field"
+        >
+          <option value="expense">Gasto</option>
+          <option value="income">Ingreso</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="flex flex-wrap gap-3 pt-4">
+      <button type="submit" class="primary-button flex-1 sm:flex-none">
+        {{ submitLabel }}
+      </button>
+      <button type="button" class="ghost-button flex-1 sm:flex-none" (click)="onClose()">
+        Cancelar
+      </button>
+    </div>
+  </form>
+</app-dialog>

@@ -1,6 +1,7 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { merge } from 'rxjs';
 import { DashboardHeroComponent } from '../../components/dashboard-hero/dashboard-hero.component';
 import {
   SummaryCard,
@@ -9,11 +10,13 @@ import {
   TransactionFilters,
   SummaryCardItem,
   CategoryBreakdownItem,
+  TrendChartPoint,
 } from '../../models/dashboard.models';
 import { MonthlyPerformanceChartComponent } from '../../components/monthly-performance-chart/monthly-performance-chart.component';
 import { TransactionsCardComponent } from '../../components/transactions-card/transactions-card.component';
 import { DashboardService } from '../../services/dashboard.service';
 import { TransactionsService } from '../../services/transactions.service';
+import { TransactionEventsService } from '../../services/transaction-events.service';
 import { ToastService } from '../../services/toast.service';
 import { CategoryBudgetsService } from '../../services/category-budgets.service';
 import { CreditCardsService } from '../../services/credit-cards.service';
@@ -28,7 +31,7 @@ import {
   ApiBudgetSummary,
   CreditCardsSummary,
 } from '../../models/api.models';
-import { TransactionFormComponent } from '../../components/transaction-form/transaction-form.component';
+import { TransactionDialogComponent } from '../../components/transaction-dialog/transaction-dialog.component';
 import { CategoryBreakdownComponent } from '../../components/category-breakdown/category-breakdown.component';
 import { BudgetSummaryCardComponent } from '../../components/budget-summary-card/budget-summary-card.component';
 import { CreditCardsWidgetComponent } from '../../components/credit-cards-widget/credit-cards-widget.component';
@@ -45,7 +48,7 @@ const TRANSACTION_PAGE_SIZE = 6;
     DashboardHeroComponent,
     MonthlyPerformanceChartComponent,
     TransactionsCardComponent,
-    TransactionFormComponent,
+    TransactionDialogComponent,
     CategoryBreakdownComponent,
     BudgetSummaryCardComponent,
     CreditCardsWidgetComponent,
@@ -58,6 +61,7 @@ export class DashboardPageComponent implements OnInit {
   private readonly document = inject(DOCUMENT);
   private readonly dashboardService = inject(DashboardService);
   private readonly transactionsService = inject(TransactionsService);
+  private readonly transactionEventsService = inject(TransactionEventsService);
   private readonly categoryBudgetsService = inject(CategoryBudgetsService);
   private readonly creditCardsService = inject(CreditCardsService);
   private readonly toastService = inject(ToastService);
@@ -106,6 +110,19 @@ export class DashboardPageComponent implements OnInit {
     this.loadDashboard();
     this.loadBudgetSummary();
     this.loadCreditCardsSummary();
+    this.subscribeToTransactionEvents();
+  }
+
+  private subscribeToTransactionEvents(): void {
+    merge(
+      this.transactionEventsService.transactionCreated$,
+      this.transactionEventsService.transactionUpdated$
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.loadDashboard();
+        this.loadBudgetSummary();
+      });
   }
 
   private loadBudgetSummary(): void {

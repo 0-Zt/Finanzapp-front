@@ -2,6 +2,7 @@ import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { merge } from 'rxjs';
 import {
   Transaction,
   TransactionFilters,
@@ -9,11 +10,14 @@ import {
   TransactionGroupKey,
   TransactionsSummary,
   PaginationState,
+  TrendChartPoint,
 } from '../../models/dashboard.models';
 import { TransactionListGroupedComponent } from '../../components/transaction-list-grouped/transaction-list-grouped.component';
-import { TransactionFormComponent } from '../../components/transaction-form/transaction-form.component';
+import { TransactionDialogComponent } from '../../components/transaction-dialog/transaction-dialog.component';
+import { ExpenseTrendChartComponent } from '../../components/expense-trend-chart/expense-trend-chart.component';
 import { DashboardService } from '../../services/dashboard.service';
 import { TransactionsService } from '../../services/transactions.service';
+import { TransactionEventsService } from '../../services/transaction-events.service';
 import { ToastService } from '../../services/toast.service';
 import {
   ApiExpenseCategory,
@@ -29,12 +33,13 @@ const TRANSACTION_PAGE_SIZE = 15;
 @Component({
   selector: 'app-transactions-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TransactionListGroupedComponent, TransactionFormComponent],
+  imports: [CommonModule, FormsModule, TransactionListGroupedComponent, TransactionDialogComponent, ExpenseTrendChartComponent],
   templateUrl: './transactions-page.component.html',
 })
 export class TransactionsPageComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
   private readonly transactionsService = inject(TransactionsService);
+  private readonly transactionEventsService = inject(TransactionEventsService);
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -72,6 +77,8 @@ export class TransactionsPageComponent implements OnInit {
     transactionCount: 0,
   };
 
+  expenseTrendData: TrendChartPoint[] = [];
+
   private readonly currencyFormatter = new Intl.NumberFormat('es-CL', {
     style: 'currency',
     currency: 'CLP',
@@ -90,6 +97,18 @@ export class TransactionsPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadTransactions();
+    this.subscribeToTransactionEvents();
+  }
+
+  private subscribeToTransactionEvents(): void {
+    merge(
+      this.transactionEventsService.transactionCreated$,
+      this.transactionEventsService.transactionUpdated$
+    )
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.loadTransactions();
+      });
   }
 
   onAddTransaction(): void {
@@ -238,6 +257,7 @@ export class TransactionsPageComponent implements OnInit {
     this.categories = payload.categories ?? [];
     this.apiTransactions = transactions;
     this.monthOptions = this.buildMonthFilterOptions();
+    this.expenseTrendData = this.buildExpenseTrendData(transactions);
     this.applyFilters();
   }
 
@@ -460,5 +480,44 @@ export class TransactionsPageComponent implements OnInit {
     const value = new Date(date);
     const month = String(value.getMonth() + 1).padStart(2, '0');
     return `${value.getFullYear()}-${month}`;
+  }
+
+  private buildExpenseTrendData(transactions: ApiTransaction[]): TrendChartPoint[] {
+    // Agrupar transacciones por día (últimos 30 días)
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    const dailyTotals = new Map<string, number>();
+
+    // Inicializar todos los días con 0
+    for (let d = new Date(thirtyDaysAgo); d <= now; d.setDate(d.getDate() + 1)) {
+      const key = d.toISOString().slice(0, 10);
+      dailyTotals.set(key, 0);
+    }
+
+    // Sumar gastos por día
+    transactions
+      .filter((t) => t.amount < 0)
+      .forEach((transaction) => {
+        const date = new Date(transaction.transaction_date);
+        if (date >= thirtyDaysAgo && date <= now) {
+          const key = date.toISOString().slice(0, 10);
+          const current = dailyTotals.get(key) ?? 0;
+          dailyTotals.set(key, current + Math.abs(transaction.amount));
+        }
+      });
+
+    // Convertir a array de puntos
+    return Array.from(dailyTotals.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, value]) => {
+        const d = new Date(date + 'T00:00:00');
+        return {
+          date,
+          label: `${d.getDate()} ${this.monthLabels[d.getMonth()]}`,
+          value,
+          type: 'expense' as const,
+        };
+      });
   }
 }

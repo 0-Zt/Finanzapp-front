@@ -3,10 +3,11 @@ import { DOCUMENT } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { NavbarComponent } from './components/navbar/navbar.component';
 import { ToastComponent } from './components/toast/toast.component';
+import { TransactionFabComponent } from './components/transaction-fab/transaction-fab.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, NavbarComponent, ToastComponent],
+  imports: [RouterOutlet, NavbarComponent, ToastComponent, TransactionFabComponent],
   templateUrl: './app.component.html',
 })
 export class AppComponent {

@@ -77,3 +77,10 @@ export interface PaginationState {
   totalItems: number;
   totalPages: number;
 }
+
+export interface TrendChartPoint {
+  date: string;
+  label: string;
+  value: number;
+  type: 'income' | 'expense';
+}

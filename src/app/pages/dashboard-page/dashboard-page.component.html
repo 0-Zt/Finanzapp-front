@@ -14,7 +14,7 @@
     </div>
   }
 
-  <app-transaction-form
+  <app-transaction-dialog
     [categories]="categories"
     [isOpen]="isFormOpen"
     [mode]="formMode"
@@ -22,9 +22,9 @@
     (createTransaction)="onCreateTransaction($event)"
     (updateTransaction)="onUpdateTransaction($event)"
     (close)="onCloseTransactionForm()"
-  ></app-transaction-form>
+  ></app-transaction-dialog>
 
-  <section id="reports" class="grid gap-8 lg:grid-cols-[1.25fr_0.75fr]">
+  <section id="reports" class="flex flex-col gap-8">
     @if (isLoading) {
       <!-- Skeleton para el grafico -->
       <div class="glass-card">
@@ -59,7 +59,7 @@
             <div class="h-4 w-56 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
           </div>
         </div>
-        <div class="mt-6 flex flex-col gap-4">
+        <div class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           @for (i of [1,2,3,4,5,6]; track i) {
             <app-skeleton-transaction></app-skeleton-transaction>
           }

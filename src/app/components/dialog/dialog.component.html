@@ -1,0 +1,31 @@
+@if (isOpen) {
+  <div
+    class="dialog-backdrop"
+    (click)="onBackdropClick($event)"
+  >
+    <div class="dialog-container" (click)="$event.stopPropagation()">
+      <header class="dialog-header">
+        <div>
+          <h2 class="dialog-title">{{ title }}</h2>
+          @if (subtitle) {
+            <p class="dialog-subtitle">{{ subtitle }}</p>
+          }
+        </div>
+        <button
+          type="button"
+          class="dialog-close-btn"
+          (click)="onClose()"
+          aria-label="Cerrar"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </header>
+
+      <div class="dialog-content">
+        <ng-content></ng-content>
+      </div>
+    </div>
+  </div>
+}

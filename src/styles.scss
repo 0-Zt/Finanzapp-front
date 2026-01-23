@@ -336,11 +336,106 @@
     display: none;
   }
 
+  /* Hide scrollbar for horizontal scroll containers */
+  .overflow-x-auto {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.slate.300') transparent;
+  }
+
+  .dark .overflow-x-auto {
+    scrollbar-color: theme('colors.slate.700') transparent;
+  }
+
+  .overflow-x-auto::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .overflow-x-auto::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .overflow-x-auto::-webkit-scrollbar-thumb {
+    background-color: theme('colors.slate.300');
+    border-radius: 4px;
+  }
+
+  .dark .overflow-x-auto::-webkit-scrollbar-thumb {
+    background-color: theme('colors.slate.700');
+  }
+
   .filter-select {
     @apply flex-shrink-0 min-w-0 rounded-full border border-slate-200/70 bg-white/90
            px-3 py-2 text-xs font-medium text-slate-600
            focus:border-brand-300 focus:ring-2 focus:ring-brand-200 focus:outline-none
            dark:border-slate-800/70 dark:bg-slate-900/70 dark:text-slate-300;
+  }
+
+  /* Dialog/Modal */
+  .dialog-backdrop {
+    @apply fixed inset-0 z-50 flex items-center justify-center p-4
+           bg-slate-900/60 backdrop-blur-sm
+           animate-fade-in;
+  }
+
+  .dialog-container {
+    @apply relative w-full max-w-lg max-h-[90vh] overflow-y-auto
+           rounded-2xl border border-slate-200/70 bg-white shadow-2xl
+           dark:border-slate-800/70 dark:bg-slate-900
+           animate-fade-up;
+  }
+
+  .dialog-header {
+    @apply sticky top-0 z-10 flex items-start justify-between gap-4 p-6 pb-4
+           border-b border-slate-100 bg-white/95 backdrop-blur-sm
+           dark:border-slate-800 dark:bg-slate-900/95;
+  }
+
+  .dialog-title {
+    @apply text-xl font-semibold text-slate-900 dark:text-white;
+  }
+
+  .dialog-subtitle {
+    @apply mt-1 text-sm text-slate-600 dark:text-slate-300;
+  }
+
+  .dialog-close-btn {
+    @apply flex-shrink-0 p-2 -m-2 rounded-lg text-slate-400
+           transition-colors duration-150
+           hover:text-slate-600 hover:bg-slate-100
+           dark:hover:text-slate-200 dark:hover:bg-slate-800;
+  }
+
+  .dialog-content {
+    @apply p-6;
+  }
+
+  /* FAB (Floating Action Button) */
+  .fab {
+    @apply fixed z-40 flex items-center justify-center
+           w-14 h-14 rounded-full
+           bg-gradient-to-r from-brand-600 to-brand-500
+           text-white shadow-lg shadow-brand-600/30
+           transition-all duration-200
+           hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-600/40
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 focus-visible:ring-offset-2
+           active:scale-95;
+    bottom: 1.5rem;
+    right: 1.5rem;
+  }
+
+  @media (min-width: 640px) {
+    .fab {
+      bottom: 2rem;
+      right: 2rem;
+    }
+  }
+
+  .fab-icon {
+    @apply w-6 h-6 transition-transform duration-200;
+  }
+
+  .fab:hover .fab-icon {
+    @apply rotate-90;
   }
 }
 

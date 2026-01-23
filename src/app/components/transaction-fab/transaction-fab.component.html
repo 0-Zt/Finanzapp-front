@@ -1,0 +1,10 @@
+<app-fab (fabClick)="onFabClick()"></app-fab>
+
+<app-transaction-dialog
+  [categories]="categories"
+  [isOpen]="isDialogOpen"
+  [mode]="'create'"
+  [transaction]="null"
+  (createTransaction)="onCreateTransaction($event)"
+  (close)="onCloseDialog()"
+></app-transaction-dialog>
