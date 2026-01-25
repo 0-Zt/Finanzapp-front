@@ -3,45 +3,56 @@ import {
   Component,
   Input,
   OnChanges,
+  OnInit,
   SimpleChanges,
+  inject,
 } from '@angular/core';
-import { CommonModule, CurrencyPipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { TrendChartPoint } from '../../models/dashboard.models';
+import { NgApexchartsModule } from 'ng-apexcharts';
+import {
+  ApexAxisChartSeries,
+  ApexChart,
+  ApexXAxis,
+  ApexYAxis,
+  ApexStroke,
+  ApexFill,
+  ApexDataLabels,
+  ApexTooltip,
+  ApexGrid,
+  ApexMarkers,
+  ApexLegend,
+  ApexTheme,
+} from 'ng-apexcharts';
 
-interface ChartPoint {
-  x: number;
-  y: number;
-  value: number;
-  label: string;
-  date: string;
-}
+export type ChartOptions = {
+  series: ApexAxisChartSeries;
+  chart: ApexChart;
+  xaxis: ApexXAxis;
+  yaxis: ApexYAxis;
+  stroke: ApexStroke;
+  fill: ApexFill;
+  dataLabels: ApexDataLabels;
+  tooltip: ApexTooltip;
+  grid: ApexGrid;
+  markers: ApexMarkers;
+  legend: ApexLegend;
+  theme: ApexTheme;
+  colors: string[];
+};
 
 @Component({
   selector: 'app-expense-trend-chart',
   standalone: true,
-  imports: [CommonModule, CurrencyPipe],
+  imports: [CommonModule, NgApexchartsModule],
   templateUrl: './expense-trend-chart.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ExpenseTrendChartComponent implements OnChanges {
+export class ExpenseTrendChartComponent implements OnChanges, OnInit {
   @Input({ required: true }) data: TrendChartPoint[] = [];
   @Input() title = 'Tendencia de gastos';
-  @Input() description = 'Evolución de tus gastos en el tiempo.';
+  @Input() description = 'Evolución de tus gastos en los últimos 30 días.';
   @Input() showIncome = false;
-
-  readonly chartWidth = 100;
-  readonly chartHeight = 50;
-  readonly padding = { top: 5, right: 5, bottom: 8, left: 5 };
-
-  expensePoints: ChartPoint[] = [];
-  incomePoints: ChartPoint[] = [];
-  expensePath = '';
-  expenseAreaPath = '';
-  incomePath = '';
-  incomeAreaPath = '';
-  gridLines: number[] = [];
-  maxValue = 0;
-  hoveredPoint: ChartPoint | null = null;
 
   private readonly currencyFormatter = new Intl.NumberFormat('es-CL', {
     style: 'currency',
@@ -49,137 +60,262 @@ export class ExpenseTrendChartComponent implements OnChanges {
     maximumFractionDigits: 0,
   });
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['data'] || changes['showIncome']) {
-      this.calculateChart();
+  chartOptions: Partial<ChartOptions> = {};
+  maxValue = 0;
+  avgValue = 0;
+  minValue = 0;
+
+  private isDarkMode = false;
+
+  ngOnInit(): void {
+    this.checkDarkMode();
+    this.setupChart();
+
+    // Observar cambios en el modo oscuro
+    if (typeof window !== 'undefined') {
+      const observer = new MutationObserver(() => {
+        const wasDark = this.isDarkMode;
+        this.checkDarkMode();
+        if (wasDark !== this.isDarkMode) {
+          this.setupChart();
+        }
+      });
+      observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['class'],
+      });
     }
   }
 
-  onPointHover(point: ChartPoint): void {
-    this.hoveredPoint = point;
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['data'] || changes['showIncome']) {
+      this.calculateStats();
+      this.setupChart();
+    }
   }
 
-  onPointLeave(): void {
-    this.hoveredPoint = null;
+  private checkDarkMode(): void {
+    if (typeof document !== 'undefined') {
+      this.isDarkMode = document.documentElement.classList.contains('dark');
+    }
+  }
+
+  private calculateStats(): void {
+    const expenses = this.data.filter((d) => d.type === 'expense');
+    if (expenses.length === 0) {
+      this.maxValue = 0;
+      this.avgValue = 0;
+      this.minValue = 0;
+      return;
+    }
+
+    const values = expenses.map((d) => d.value);
+    this.maxValue = Math.max(...values);
+    this.minValue = Math.min(...values);
+    this.avgValue = Math.round(values.reduce((a, b) => a + b, 0) / values.length);
   }
 
   formatCurrency(value: number): string {
     return this.currencyFormatter.format(value);
   }
 
-  private calculateChart(): void {
-    if (!this.data.length) {
-      this.expensePoints = [];
-      this.incomePoints = [];
-      this.expensePath = '';
-      this.incomePath = '';
-      return;
-    }
-
+  private setupChart(): void {
     const expenses = this.data.filter((d) => d.type === 'expense');
     const incomes = this.data.filter((d) => d.type === 'income');
 
-    const allValues = this.data.map((d) => d.value);
-    this.maxValue = Math.max(...allValues, 1);
-
-    // Generate grid lines (4 horizontal lines)
-    this.gridLines = [0.25, 0.5, 0.75, 1].map((p) => this.maxValue * p);
-
-    const innerWidth = this.chartWidth - this.padding.left - this.padding.right;
-    const innerHeight = this.chartHeight - this.padding.top - this.padding.bottom;
-
-    // Calculate expense points
-    this.expensePoints = expenses.map((point, index) => ({
-      x: this.padding.left + (index / Math.max(expenses.length - 1, 1)) * innerWidth,
-      y: this.padding.top + innerHeight - (point.value / this.maxValue) * innerHeight,
-      value: point.value,
-      label: point.label,
-      date: point.date,
+    const expenseData = expenses.map((d) => ({
+      x: d.label,
+      y: d.value,
     }));
 
-    // Calculate income points
-    this.incomePoints = incomes.map((point, index) => ({
-      x: this.padding.left + (index / Math.max(incomes.length - 1, 1)) * innerWidth,
-      y: this.padding.top + innerHeight - (point.value / this.maxValue) * innerHeight,
-      value: point.value,
-      label: point.label,
-      date: point.date,
+    const incomeData = incomes.map((d) => ({
+      x: d.label,
+      y: d.value,
     }));
 
-    // Generate paths
-    this.expensePath = this.generateLinePath(this.expensePoints);
-    this.expenseAreaPath = this.generateAreaPath(this.expensePoints, innerHeight);
+    const series: ApexAxisChartSeries = [
+      {
+        name: 'Gastos',
+        data: expenseData,
+      },
+    ];
 
-    if (this.showIncome) {
-      this.incomePath = this.generateLinePath(this.incomePoints);
-      this.incomeAreaPath = this.generateAreaPath(this.incomePoints, innerHeight);
-    }
-  }
-
-  private generateLinePath(points: ChartPoint[]): string {
-    if (points.length < 2) {
-      return '';
-    }
-
-    return points
-      .map((point, index) => {
-        const command = index === 0 ? 'M' : 'L';
-        return `${command}${point.x},${point.y}`;
-      })
-      .join(' ');
-  }
-
-  private generateAreaPath(points: ChartPoint[], innerHeight: number): string {
-    if (points.length < 2) {
-      return '';
+    if (this.showIncome && incomeData.length > 0) {
+      series.push({
+        name: 'Ingresos',
+        data: incomeData,
+      });
     }
 
-    const baseline = this.padding.top + innerHeight;
-    const linePath = this.generateLinePath(points);
-    const lastPoint = points[points.length - 1];
-    const firstPoint = points[0];
+    const colors = this.showIncome ? ['#f43f5e', '#10b981'] : ['#f43f5e'];
 
-    return `${linePath} L${lastPoint.x},${baseline} L${firstPoint.x},${baseline} Z`;
-  }
-
-  getYPosition(value: number): number {
-    const innerHeight = this.chartHeight - this.padding.top - this.padding.bottom;
-    return this.padding.top + innerHeight - (value / this.maxValue) * innerHeight;
-  }
-
-  getAverageExpense(): number {
-    if (!this.expensePoints.length) {
-      return 0;
-    }
-    const sum = this.expensePoints.reduce((acc, p) => acc + p.value, 0);
-    return Math.round(sum / this.expensePoints.length);
-  }
-
-  getMinExpense(): number {
-    if (!this.expensePoints.length) {
-      return 0;
-    }
-    return Math.min(...this.expensePoints.map((p) => p.value));
-  }
-
-  getVisibleLabels(): ChartPoint[] {
-    if (this.expensePoints.length <= 6) {
-      return this.expensePoints;
-    }
-
-    const step = Math.ceil(this.expensePoints.length / 6);
-    const result: ChartPoint[] = [];
-
-    for (let i = 0; i < this.expensePoints.length; i += step) {
-      result.push(this.expensePoints[i]);
-    }
-
-    // Siempre incluir el último punto
-    const lastPoint = this.expensePoints[this.expensePoints.length - 1];
-    if (result[result.length - 1] !== lastPoint) {
-      result.push(lastPoint);
-    }
-
-    return result;
+    this.chartOptions = {
+      series,
+      colors,
+      chart: {
+        type: 'area',
+        height: 280,
+        fontFamily: 'Inter, system-ui, sans-serif',
+        background: 'transparent',
+        animations: {
+          enabled: true,
+          speed: 800,
+          animateGradually: {
+            enabled: true,
+            delay: 150,
+          },
+          dynamicAnimation: {
+            enabled: true,
+            speed: 350,
+          },
+        },
+        toolbar: {
+          show: false,
+        },
+        zoom: {
+          enabled: false,
+        },
+        dropShadow: {
+          enabled: true,
+          top: 3,
+          left: 0,
+          blur: 6,
+          opacity: 0.15,
+          color: '#f43f5e',
+        },
+      },
+      stroke: {
+        curve: 'smooth',
+        width: 3,
+        lineCap: 'round',
+      },
+      fill: {
+        type: 'gradient',
+        gradient: {
+          shadeIntensity: 1,
+          opacityFrom: 0.45,
+          opacityTo: 0.05,
+          stops: [0, 90, 100],
+        },
+      },
+      dataLabels: {
+        enabled: false,
+      },
+      markers: {
+        size: 0,
+        strokeWidth: 2,
+        strokeColors: this.isDarkMode ? '#1e293b' : '#ffffff',
+        hover: {
+          size: 7,
+          sizeOffset: 3,
+        },
+      },
+      xaxis: {
+        type: 'category',
+        labels: {
+          style: {
+            colors: this.isDarkMode ? '#94a3b8' : '#64748b',
+            fontSize: '11px',
+            fontWeight: 500,
+          },
+          rotate: 0,
+          hideOverlappingLabels: true,
+          trim: true,
+        },
+        axisBorder: {
+          show: false,
+        },
+        axisTicks: {
+          show: false,
+        },
+        crosshairs: {
+          show: true,
+          stroke: {
+            color: this.isDarkMode ? '#475569' : '#cbd5e1',
+            width: 1,
+            dashArray: 4,
+          },
+        },
+        tooltip: {
+          enabled: false,
+        },
+      },
+      yaxis: {
+        labels: {
+          style: {
+            colors: this.isDarkMode ? '#94a3b8' : '#64748b',
+            fontSize: '11px',
+            fontWeight: 500,
+          },
+          formatter: (value: number) => {
+            if (value >= 1000000) {
+              return '$' + (value / 1000000).toFixed(1) + 'M';
+            } else if (value >= 1000) {
+              return '$' + (value / 1000).toFixed(0) + 'K';
+            }
+            return '$' + value.toFixed(0);
+          },
+        },
+      },
+      grid: {
+        borderColor: this.isDarkMode ? '#334155' : '#e2e8f0',
+        strokeDashArray: 4,
+        xaxis: {
+          lines: {
+            show: false,
+          },
+        },
+        yaxis: {
+          lines: {
+            show: true,
+          },
+        },
+        padding: {
+          top: 0,
+          right: 10,
+          bottom: 0,
+          left: 10,
+        },
+      },
+      tooltip: {
+        enabled: true,
+        shared: true,
+        intersect: false,
+        theme: this.isDarkMode ? 'dark' : 'light',
+        style: {
+          fontSize: '12px',
+          fontFamily: 'Inter, system-ui, sans-serif',
+        },
+        y: {
+          formatter: (value: number) => this.formatCurrency(value),
+        },
+        marker: {
+          show: true,
+        },
+        custom: undefined,
+      },
+      legend: {
+        show: this.showIncome,
+        position: 'top',
+        horizontalAlign: 'right',
+        floating: true,
+        offsetY: -25,
+        offsetX: -5,
+        labels: {
+          colors: this.isDarkMode ? '#e2e8f0' : '#334155',
+        },
+        markers: {
+          shape: 'circle',
+          strokeWidth: 0,
+          offsetX: -2,
+        },
+        itemMargin: {
+          horizontal: 12,
+        },
+      },
+      theme: {
+        mode: this.isDarkMode ? 'dark' : 'light',
+      },
+    };
   }
 }

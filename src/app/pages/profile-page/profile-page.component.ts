@@ -18,8 +18,18 @@ import {
   ApiExpenseCategory,
   ApiSuggestedBudget,
   CreateCategoryBudgetPayload,
-  UpdateCategoryBudgetPayload
+  UpdateCategoryBudgetPayload,
+  NotificationPreferences
 } from '../../models/api.models';
+
+export type ProfileSection = 'personal' | 'fixed-expenses' | 'budgets' | 'notifications';
+
+export interface ProfileMenuItem {
+  id: ProfileSection;
+  label: string;
+  icon: string;
+  description: string;
+}
 
 @Component({
   selector: 'app-profile-page',
@@ -35,6 +45,35 @@ export class ProfilePageComponent implements OnInit {
   private readonly categoryBudgetsService = inject(CategoryBudgetsService);
   private readonly categoriesService = inject(CategoriesService);
   private readonly destroyRef = inject(DestroyRef);
+
+  // Navigation
+  activeSection: ProfileSection = 'personal';
+  menuItems: ProfileMenuItem[] = [
+    {
+      id: 'personal',
+      label: 'Informacion personal',
+      icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z',
+      description: 'Datos basicos y configuracion'
+    },
+    {
+      id: 'fixed-expenses',
+      label: 'Gastos fijos',
+      icon: 'M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z',
+      description: 'Pagos recurrentes mensuales'
+    },
+    {
+      id: 'budgets',
+      label: 'Presupuestos',
+      icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z',
+      description: 'Limites por categoria'
+    },
+    {
+      id: 'notifications',
+      label: 'Notificaciones',
+      icon: 'M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9',
+      description: 'Alertas y recordatorios'
+    }
+  ];
 
   profile: UserProfile | null = null;
   fixedExpenses: FixedExpense[] = [];
@@ -78,6 +117,21 @@ export class ProfilePageComponent implements OnInit {
   editingBudgetId: number | null = null;
   isBudgetFormOpen = false;
 
+  // Notification preferences
+  notificationPreferencesForm: FormGroup = this.fb.group({
+    budget_warning: [true],
+    budget_exceeded: [true],
+    payment_reminder: [true],
+    payment_reminder_days: [3, [Validators.min(1), Validators.max(30)]],
+    goal_deadline: [true],
+    goal_deadline_days: [7, [Validators.min(1), Validators.max(30)]],
+    card_payment_due: [true],
+    card_payment_due_days: [3, [Validators.min(1), Validators.max(30)]],
+    fixed_expense_due: [true],
+    fixed_expense_due_days: [2, [Validators.min(1), Validators.max(30)]],
+  });
+  isSavingNotificationPreferences = false;
+
   private readonly currencyFormatter = new Intl.NumberFormat('es-CL', {
     style: 'currency',
     currency: 'CLP',
@@ -86,6 +140,10 @@ export class ProfilePageComponent implements OnInit {
 
   get userEmail(): string {
     return this.authService.currentUser?.email || '';
+  }
+
+  setActiveSection(section: ProfileSection): void {
+    this.activeSection = section;
   }
 
   ngOnInit(): void {
@@ -122,6 +180,21 @@ export class ProfilePageComponent implements OnInit {
             budgetWarningThreshold: warningThreshold,
             budgetExceededThreshold: exceededThreshold,
           });
+          // Load notification preferences
+          if (profile.notification_preferences) {
+            this.notificationPreferencesForm.patchValue({
+              budget_warning: profile.notification_preferences.budget_warning ?? true,
+              budget_exceeded: profile.notification_preferences.budget_exceeded ?? true,
+              payment_reminder: profile.notification_preferences.payment_reminder ?? true,
+              payment_reminder_days: profile.notification_preferences.payment_reminder_days ?? 3,
+              goal_deadline: profile.notification_preferences.goal_deadline ?? true,
+              goal_deadline_days: profile.notification_preferences.goal_deadline_days ?? 7,
+              card_payment_due: profile.notification_preferences.card_payment_due ?? true,
+              card_payment_due_days: profile.notification_preferences.card_payment_due_days ?? 3,
+              fixed_expense_due: profile.notification_preferences.fixed_expense_due ?? true,
+              fixed_expense_due_days: profile.notification_preferences.fixed_expense_due_days ?? 2,
+            });
+          }
           const currentMonth = this.getCurrentMonth(resolvedTimeZone);
           if (this.selectedBudgetMonth !== currentMonth) {
             this.selectedBudgetMonth = currentMonth;
@@ -488,6 +561,42 @@ export class ProfilePageComponent implements OnInit {
         },
         error: () => {
           this.toastService.error('Error al eliminar el presupuesto');
+        },
+      });
+  }
+
+  onSaveNotificationPreferences(): void {
+    if (this.notificationPreferencesForm.invalid) {
+      return;
+    }
+
+    this.isSavingNotificationPreferences = true;
+    const formValue = this.notificationPreferencesForm.value;
+
+    const notificationPreferences: NotificationPreferences = {
+      budget_warning: formValue.budget_warning,
+      budget_exceeded: formValue.budget_exceeded,
+      payment_reminder: formValue.payment_reminder,
+      payment_reminder_days: formValue.payment_reminder_days,
+      goal_deadline: formValue.goal_deadline,
+      goal_deadline_days: formValue.goal_deadline_days,
+      card_payment_due: formValue.card_payment_due,
+      card_payment_due_days: formValue.card_payment_due_days,
+      fixed_expense_due: formValue.fixed_expense_due,
+      fixed_expense_due_days: formValue.fixed_expense_due_days,
+    };
+
+    this.profileService.updateProfile({ notificationPreferences })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (profile) => {
+          this.profile = profile;
+          this.toastService.success('Preferencias de notificaciones actualizadas');
+          this.isSavingNotificationPreferences = false;
+        },
+        error: () => {
+          this.toastService.error('Error al actualizar las preferencias');
+          this.isSavingNotificationPreferences = false;
         },
       });
   }

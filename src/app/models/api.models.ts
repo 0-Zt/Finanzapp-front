@@ -121,6 +121,19 @@ export interface UpdateFinancialGoalPayload {
   icon?: string | null;
 }
 
+export interface NotificationPreferences {
+  budget_warning?: boolean;
+  budget_exceeded?: boolean;
+  payment_reminder?: boolean;
+  payment_reminder_days?: number;
+  goal_deadline?: boolean;
+  goal_deadline_days?: number;
+  card_payment_due?: boolean;
+  card_payment_due_days?: number;
+  fixed_expense_due?: boolean;
+  fixed_expense_due_days?: number;
+}
+
 export interface UpdateProfilePayload {
   fullName?: string;
   monthlySalary?: number;
@@ -130,6 +143,7 @@ export interface UpdateProfilePayload {
   timezone?: string;
   budgetWarningThreshold?: number;
   budgetExceededThreshold?: number;
+  notificationPreferences?: NotificationPreferences;
 }
 
 export interface CreateFixedExpensePayload {
