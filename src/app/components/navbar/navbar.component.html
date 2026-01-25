@@ -50,6 +50,11 @@
     }
 
     <div class="flex items-center gap-3">
+      @if (currentUser$ | async) {
+        <!-- Notification Bell -->
+        <app-notification-bell />
+      }
+
       <!-- Dark Mode Toggle -->
       <button
         type="button"

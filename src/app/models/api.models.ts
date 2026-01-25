@@ -48,11 +48,23 @@ export interface UserProfile {
   salary_day: number;
   currency: string;
   onboarding_completed: boolean;
-  timezone: string | null;
-  budget_warning_threshold: number | null;
-  budget_exceeded_threshold: number | null;
-  created_at: string;
-  updated_at: string;
+  timezone?: string | null;
+  budget_warning_threshold?: number | null;
+  budget_exceeded_threshold?: number | null;
+  notification_preferences?: {
+    budget_warning?: boolean;
+    budget_exceeded?: boolean;
+    payment_reminder?: boolean;
+    payment_reminder_days?: number;
+    goal_deadline?: boolean;
+    goal_deadline_days?: number;
+    card_payment_due?: boolean;
+    card_payment_due_days?: number;
+    fixed_expense_due?: boolean;
+    fixed_expense_due_days?: number;
+  };
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface FixedExpense {
@@ -345,4 +357,40 @@ export interface CreateCardPaymentPayload {
   amount: number;
   payment_type?: string;
   notes?: string;
+}
+
+// ==================== NOTIFICATIONS ====================
+
+export interface NotificationMetadata {
+  entity_type?: string;
+  entity_id?: number;
+  action_url?: string;
+  [key: string]: any;
+}
+
+export interface ApiNotification {
+  id: number;
+  type: string;
+  title: string;
+  message: string;
+  icon: string | null;
+  color: string | null;
+  priority: string;
+  category: string | null;
+  metadata: NotificationMetadata;
+  isRead: boolean;
+  readAt: string | null;
+  createdAt: string;
+  expiresAt: string | null;
+}
+
+export interface ApiNotificationsResponse {
+  notifications: ApiNotification[];
+  unreadCount: number;
+  totalCount: number;
+  hasMore: boolean;
+}
+
+export interface ApiUnreadCountResponse {
+  unreadCount: number;
 }

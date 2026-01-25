@@ -20,6 +20,7 @@ import { TransactionEventsService } from '../../services/transaction-events.serv
 import { ToastService } from '../../services/toast.service';
 import { CategoryBudgetsService } from '../../services/category-budgets.service';
 import { CreditCardsService } from '../../services/credit-cards.service';
+import { NotificationsService } from '../../services/notifications.service';
 import {
   ApiExpenseCategory,
   ApiTransaction,
@@ -64,6 +65,7 @@ export class DashboardPageComponent implements OnInit {
   private readonly transactionEventsService = inject(TransactionEventsService);
   private readonly categoryBudgetsService = inject(CategoryBudgetsService);
   private readonly creditCardsService = inject(CreditCardsService);
+  private readonly notificationsService = inject(NotificationsService);
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -111,6 +113,8 @@ export class DashboardPageComponent implements OnInit {
     this.loadBudgetSummary();
     this.loadCreditCardsSummary();
     this.subscribeToTransactionEvents();
+    // Trigger silent notification evaluation
+    this.notificationsService.refreshUnreadCount();
   }
 
   private subscribeToTransactionEvents(): void {

@@ -1,0 +1,59 @@
+<div
+  class="group relative flex cursor-pointer items-start gap-3 px-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
+  [ngClass]="{
+    'bg-brand-50/30': !notification.isRead,
+    'dark:bg-brand-900/10': !notification.isRead
+  }"
+  (click)="onClick()"
+>
+  <div
+    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+    [ngStyle]="{ backgroundColor: notification.color || '#6366F1' }"
+    style="opacity: 0.15"
+  >
+    <div
+      class="flex h-6 w-6 items-center justify-center rounded-full"
+      [ngStyle]="{ backgroundColor: notification.color || '#6366F1' }"
+    >
+      <span class="text-xs font-bold text-white">!</span>
+    </div>
+  </div>
+
+  <div class="min-w-0 flex-1">
+    <div class="flex items-start justify-between gap-2">
+      <h4 class="text-sm font-semibold text-slate-900 dark:text-white" [class.font-bold]="!notification.isRead">
+        {{ notification.title }}
+      </h4>
+      @if (!notification.isRead) {
+        <div class="h-2 w-2 shrink-0 rounded-full bg-brand-600 dark:bg-brand-400"></div>
+      }
+    </div>
+
+    <p class="mt-0.5 text-sm text-slate-600 dark:text-slate-400">
+      {{ notification.message }}
+    </p>
+
+    <div class="mt-1.5 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-500">
+      <span>{{ getTimeAgo() }}</span>
+      @if (notification.priority === 'urgent' || notification.priority === 'high') {
+        <span class="rounded-full px-2 py-0.5 font-medium" [ngClass]="{
+          'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400': notification.priority === 'urgent',
+          'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400': notification.priority === 'high'
+        }">
+          {{ notification.priority === 'urgent' ? 'Urgente' : 'Alta prioridad' }}
+        </span>
+      }
+    </div>
+  </div>
+
+  <button
+    type="button"
+    class="shrink-0 opacity-0 transition-opacity group-hover:opacity-100 rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
+    (click)="onDismiss($event)"
+    aria-label="Dismiss notification"
+  >
+    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+    </svg>
+  </button>
+</div>
