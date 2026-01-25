@@ -38,6 +38,7 @@ import { BudgetSummaryCardComponent } from '../../components/budget-summary-card
 import { CreditCardsWidgetComponent } from '../../components/credit-cards-widget/credit-cards-widget.component';
 import { SkeletonCardComponent } from '../../components/skeleton/skeleton-card.component';
 import { SkeletonTransactionComponent } from '../../components/skeleton/skeleton-transaction.component';
+import { TransactionFabComponent } from '../../components/transaction-fab/transaction-fab.component';
 
 const TRANSACTION_FETCH_LIMIT = 120;
 const TRANSACTION_PAGE_SIZE = 6;
@@ -55,6 +56,7 @@ const TRANSACTION_PAGE_SIZE = 6;
     CreditCardsWidgetComponent,
     SkeletonCardComponent,
     SkeletonTransactionComponent,
+    TransactionFabComponent,
   ],
   templateUrl: './dashboard-page.component.html',
 })

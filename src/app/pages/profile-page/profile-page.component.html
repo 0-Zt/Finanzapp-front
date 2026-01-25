@@ -87,7 +87,7 @@
       <main class="min-w-0 flex-1">
         <!-- Personal Info Section -->
         @if (activeSection === 'personal') {
-          <div class="glass-card">
+          <div class="glass-card animate-content-enter">
             <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Informacion personal</h2>
             <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">{{ userEmail }}</p>
 
@@ -196,7 +196,7 @@
 
         <!-- Fixed Expenses Section -->
         @if (activeSection === 'fixed-expenses') {
-          <div class="glass-card">
+          <div class="glass-card animate-content-enter">
             <div class="flex items-start justify-between">
               <div>
                 <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Gastos fijos</h2>
@@ -273,7 +273,7 @@
 
         <!-- Budgets Section -->
         @if (activeSection === 'budgets') {
-          <div class="glass-card">
+          <div class="glass-card animate-content-enter">
             <div class="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Presupuestos por categoria</h2>
@@ -404,7 +404,7 @@
 
         <!-- Notifications Section -->
         @if (activeSection === 'notifications') {
-          <div class="glass-card">
+          <div class="glass-card animate-content-enter">
             <div class="flex items-start justify-between">
               <div>
                 <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Preferencias de notificaciones</h2>
@@ -569,8 +569,8 @@
 
   <!-- Expense Form Modal -->
   @if (isExpenseFormOpen) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div class="glass-card w-full max-w-md mx-4">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+      <div class="glass-card w-full max-w-md mx-4 animate-scale-in">
         <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
           {{ editingExpenseId ? 'Editar gasto fijo' : 'Nuevo gasto fijo' }}
         </h3>
@@ -655,8 +655,8 @@
 
   <!-- Budget Form Modal -->
   @if (isBudgetFormOpen) {
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div class="glass-card w-full max-w-md mx-4">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
+      <div class="glass-card w-full max-w-md mx-4 animate-scale-in">
         <h3 class="text-lg font-semibold text-slate-900 dark:text-white">
           {{ editingBudgetId ? 'Editar presupuesto' : 'Nuevo presupuesto' }}
         </h3>

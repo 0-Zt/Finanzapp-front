@@ -29,20 +29,22 @@ export class BudgetProgressBarComponent {
   }
 
   get statusClasses(): string {
+    // Using more saturated colors for better visibility on low-brightness screens
     switch (this.budget.status) {
       case 'exceeded':
-        return 'bg-rose-500';
+        return 'bg-red-600';      // Stronger red for critical status
       case 'warning':
         return 'bg-amber-500';
       default:
-        return 'bg-emerald-500';
+        return 'bg-emerald-600';  // Stronger green for healthy status
     }
   }
 
   get statusBadgeClasses(): string {
+    // Enhanced contrast for badge backgrounds and text
     switch (this.budget.status) {
       case 'exceeded':
-        return 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400';
+        return 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400';
       case 'warning':
         return 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400';
       default:

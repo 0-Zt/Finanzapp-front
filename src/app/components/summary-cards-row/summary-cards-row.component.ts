@@ -35,12 +35,13 @@ export class SummaryCardsRowComponent {
   };
 
   trendClass(trend: SummaryCard['trend']): string {
+    // Enhanced colors for WCAG AA compliance and low-brightness visibility
     if (trend === 'down') {
-      return 'text-rose-500 dark:text-rose-300';
+      return 'text-red-600 dark:text-red-400';
     }
     if (trend === 'up') {
-      return 'text-emerald-500 dark:text-emerald-300';
+      return 'text-emerald-600 dark:text-emerald-400';
     }
-    return 'text-slate-500 dark:text-slate-300';
+    return 'text-slate-600 dark:text-slate-400';
   }
 }

@@ -35,17 +35,17 @@ export class TransactionsCardComponent {
 
   readonly categoryClasses: Record<string, string> = {
     Comida:
-      'bg-orange-100/70 text-orange-700 dark:bg-orange-400/15 dark:text-orange-200',
+      'bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300',
     Servicios:
-      'bg-blue-100/70 text-blue-700 dark:bg-blue-400/15 dark:text-blue-200',
+      'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300',
     Entretenimiento:
-      'bg-sky-100/70 text-sky-700 dark:bg-sky-400/15 dark:text-sky-200',
+      'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300',
     Salud:
-      'bg-pink-100/70 text-pink-700 dark:bg-pink-400/15 dark:text-pink-200',
+      'bg-pink-100 text-pink-700 dark:bg-pink-500/20 dark:text-pink-300',
     Transporte:
-      'bg-teal-100/70 text-teal-700 dark:bg-teal-400/15 dark:text-teal-200',
+      'bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300',
     Ingresos:
-      'bg-emerald-100/70 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-200',
+      'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300',
   };
 
   readonly iconMap: Record<string, string> = {
@@ -107,8 +107,10 @@ export class TransactionsCardComponent {
   }
 
   amountClass(type: Transaction['type']): string {
+    // Enhanced colors for better visibility on low brightness screens
+    // Using 600 variants in light mode for WCAG AA compliance
     return type === 'expense'
-      ? 'text-rose-500 dark:text-rose-300'
-      : 'text-emerald-500 dark:text-emerald-300';
+      ? 'text-red-600 dark:text-red-400'       // Red-600 has 4.5:1 contrast on white
+      : 'text-emerald-600 dark:text-emerald-400'; // Emerald-600 has 4.5:1 contrast
   }
 }

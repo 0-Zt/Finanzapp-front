@@ -1,58 +1,70 @@
-<section class="flex flex-col gap-10">
-  <div class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
-    <div class="flex flex-col gap-6">
+<section class="flex flex-col gap-6 sm:gap-8 lg:gap-10">
+  <div class="grid gap-6 lg:gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+    <div class="flex flex-col gap-4 sm:gap-6">
       <span class="accent-pill">
         {{ badgeLabel }}
       </span>
 
-      <h1 class="text-4xl leading-tight text-slate-900 sm:text-[2.6rem] sm:leading-[1.08] dark:text-white">
+      <h1 class="text-heading-lg leading-tight sm:text-display-sm lg:text-display">
         Gestiona {{ title }} con claridad
       </h1>
 
-      <p class="max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-300">
+      <p class="max-w-2xl text-body-sm leading-relaxed sm:text-body">
         {{ description }}
       </p>
 
-      <div class="flex flex-wrap items-center gap-3">
-        <button type="button" class="primary-button" (click)="onAddTransaction()">Agregar transacción</button>
+      <!-- Buttons: hidden on mobile since FAB is available -->
+      <div class="hidden flex-wrap items-center gap-3 sm:flex">
+        <button type="button" class="primary-button" (click)="onAddTransaction()">Agregar transaccion</button>
         <button type="button" class="ghost-button" (click)="onViewReports()">Ver reportes</button>
+      </div>
+      <!-- Mobile: only show "Ver reportes" button, FAB handles add -->
+      <div class="flex sm:hidden">
+        <button type="button" class="ghost-button text-caption" (click)="onViewReports()">Ver reportes</button>
       </div>
     </div>
 
-    <aside class="glass-card flex flex-col gap-4">
+    <aside class="glass-card flex flex-col gap-3 sm:gap-4">
       <div class="flex items-center justify-between">
-        <h3 class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500 dark:text-slate-300">
-          Accesos rápidos
+        <h3 class="text-label uppercase tracking-[0.15em] text-text-secondary dark:text-text-secondary-dark">
+          Accesos rapidos
         </h3>
         <span class="badge-soft">Hoy</span>
       </div>
-      <div class="grid gap-3">
-        <a routerLink="/transactions" class="quick-link">
-          <span>Movimientos</span>
-          <span class="text-xs font-medium text-slate-400 dark:text-slate-400">Todo el historial</span>
+      <!-- 2-column grid on mobile, single column on larger screens for better quick link readability -->
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-1 sm:gap-3">
+        <a routerLink="/transactions" class="quick-link flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <span class="text-caption font-semibold sm:text-subheading-sm">Movimientos</span>
+          <span class="text-label-xs text-text-tertiary dark:text-text-tertiary-dark sm:text-caption">Todo el historial</span>
         </a>
-        <a routerLink="/goals" class="quick-link">
-          <span>Metas financieras</span>
-          <span class="text-xs font-medium text-slate-400 dark:text-slate-400">Planifica objetivos</span>
+        <a routerLink="/goals" class="quick-link flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <span class="text-caption font-semibold sm:text-subheading-sm">Metas financieras</span>
+          <span class="text-label-xs text-text-tertiary dark:text-text-tertiary-dark sm:text-caption">Planifica objetivos</span>
         </a>
-        <a routerLink="/savings" class="quick-link">
-          <span>Ahorro e inversion</span>
-          <span class="text-xs font-medium text-slate-400 dark:text-slate-400">ETF y aportes</span>
+        <a routerLink="/savings" class="quick-link flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <span class="text-caption font-semibold sm:text-subheading-sm">Ahorro e inversion</span>
+          <span class="text-label-xs text-text-tertiary dark:text-text-tertiary-dark sm:text-caption">ETF y aportes</span>
+        </a>
+        <a routerLink="/budgets" class="quick-link flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+          <span class="text-caption font-semibold sm:text-subheading-sm">Presupuestos</span>
+          <span class="text-label-xs text-text-tertiary dark:text-text-tertiary-dark sm:text-caption">Limites por categoria</span>
         </a>
       </div>
-      <div class="rounded-xl border border-slate-200/70 bg-white/70 px-4 py-3 text-xs text-slate-500 dark:border-slate-800/70 dark:bg-slate-900/60 dark:text-slate-300">
-        Consejo: separa gastos fijos de variables para visualizar tendencias con claridad.
+      <!-- Tip: hidden on mobile to save space -->
+      <div class="hidden rounded-xl px-4 py-3 text-body-sm sm:block" style="border: 1px solid var(--border-subtle); background: rgba(255,255,255,0.7);">
+        <span class="text-text-secondary dark:text-text-secondary-dark">Consejo:</span>
+        <span class="text-text-tertiary dark:text-text-tertiary-dark"> separa gastos fijos de variables para visualizar tendencias con claridad.</span>
       </div>
     </aside>
   </div>
 
   @if (lastUpdated) {
-    <div class="flex flex-wrap items-center justify-between gap-4 text-sm">
+    <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
       <div>
-        <h2 class="text-lg font-semibold text-slate-900 dark:text-white">Resumen rápido</h2>
-        <p class="text-sm text-slate-500 dark:text-slate-300">Actualizado {{ lastUpdated }}</p>
+        <h2 class="text-subheading sm:text-heading-sm">Resumen rapido</h2>
+        <p class="text-caption text-text-secondary dark:text-text-secondary-dark sm:text-body-sm">Actualizado {{ lastUpdated }}</p>
       </div>
-      <button type="button" class="quiet-button">{{ exportLabel }}</button>
+      <button type="button" class="quiet-button hidden sm:flex">{{ exportLabel }}</button>
     </div>
   }
 

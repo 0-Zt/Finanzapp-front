@@ -24,7 +24,7 @@
     (close)="onCloseTransactionForm()"
   ></app-transaction-dialog>
 
-  <section id="reports" class="flex flex-col gap-8">
+  <section id="reports" class="flex flex-col gap-4 sm:gap-6 lg:gap-8">
     @if (isLoading) {
       <!-- Skeleton para el grafico -->
       <div class="glass-card">
@@ -92,7 +92,7 @@
     }
   </section>
 
-  <section class="grid gap-8 lg:grid-cols-2">
+  <section class="grid gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-8">
     @if (isLoading) {
       <!-- Skeleton para categorias -->
       <div class="glass-card">
@@ -148,7 +148,7 @@
   </section>
 
   <!-- Credit Cards Section -->
-  <section class="grid gap-8 lg:grid-cols-2">
+  <section class="grid gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-8">
     <app-credit-cards-widget
       [summary]="creditCardsSummary"
       [isLoading]="isCreditCardsLoading"
@@ -197,3 +197,6 @@
     </article>
   </section>
 </section>
+
+<!-- Floating Action Button for quick transaction add (mobile-friendly) -->
+<app-transaction-fab></app-transaction-fab>
