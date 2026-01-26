@@ -1,16 +1,16 @@
 <article class="glass-card">
-  <header class="flex flex-wrap items-start justify-between gap-6">
+  <header class="flex flex-wrap items-start justify-between gap-4 sm:gap-6">
     <div>
-      <h2 class="text-xl font-semibold text-slate-900 dark:text-white">{{ title }}</h2>
-      <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+      <h2 class="text-heading font-semibold text-text-primary dark:text-text-primary-dark">{{ title }}</h2>
+      <p class="mt-1 text-body-sm text-text-secondary dark:text-text-secondary-dark">
         {{ description }}
       </p>
     </div>
-    <div class="flex flex-wrap items-center gap-3">
-      <div class="flex items-center gap-2">
+    <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+      <div class="flex items-center gap-1.5 sm:gap-2">
         <button
           type="button"
-          class="filter-chip"
+          class="filter-chip text-caption"
           [class.filter-chip-active]="period === 'monthly'"
           (click)="onPeriodChange('monthly')"
         >
@@ -18,14 +18,14 @@
         </button>
         <button
           type="button"
-          class="filter-chip"
+          class="filter-chip text-caption"
           [class.filter-chip-active]="period === 'yearly'"
           (click)="onPeriodChange('yearly')"
         >
           Anual
         </button>
       </div>
-      <button type="button" class="quiet-button">
+      <button type="button" class="quiet-button hidden sm:flex">
         {{ actionLabel }}
       </button>
     </div>
@@ -33,19 +33,19 @@
 
   <div class="flex flex-col gap-4 mt-4">
     <!-- Legend -->
-    <div class="flex flex-wrap items-center gap-6 text-sm font-medium text-slate-500 dark:text-slate-300">
+    <div class="flex flex-wrap items-center gap-4 sm:gap-6 text-caption sm:text-body-sm font-medium text-text-secondary dark:text-text-secondary-dark">
       <span class="flex items-center gap-2">
-        <span class="h-2.5 w-2.5 rounded-full bg-emerald-400"></span>
+        <span class="h-2.5 w-2.5 rounded-full bg-emerald-600 dark:bg-emerald-500"></span>
         Ingresos
       </span>
       <span class="flex items-center gap-2">
-        <span class="h-2.5 w-2.5 rounded-full bg-rose-400"></span>
+        <span class="h-2.5 w-2.5 rounded-full bg-red-600 dark:bg-red-500"></span>
         Gastos
       </span>
     </div>
 
     <!-- ApexCharts Bar Chart -->
-    <div class="w-full">
+    <div class="w-full -mx-2 sm:mx-0">
       @if (chartOptions.series && chartOptions.series.length > 0) {
         <apx-chart
           [series]="chartOptions.series!"
@@ -62,15 +62,39 @@
           [colors]="chartOptions.colors!"
         ></apx-chart>
       } @else {
-        <div class="flex items-center justify-center h-64 text-slate-400 dark:text-slate-500">
+        <div class="flex items-center justify-center h-56 text-text-tertiary dark:text-text-tertiary-dark">
           <div class="text-center">
             <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
-            <p class="text-sm">No hay datos disponibles</p>
+            <p class="text-body-sm">No hay datos disponibles</p>
           </div>
         </div>
       }
     </div>
+
+    <!-- Summary Stats -->
+    @if (totalIncome > 0 || totalExpense > 0) {
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4 pt-2 border-t border-border-subtle dark:border-border-subtle-dark">
+        <div class="flex flex-col gap-0.5 p-2 sm:p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-500/10">
+          <span class="text-label-xs uppercase tracking-wide text-text-tertiary dark:text-text-tertiary-dark">Total ingresos</span>
+          <span class="text-body-sm sm:text-body font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">{{ formatCurrency(totalIncome) }}</span>
+        </div>
+        <div class="flex flex-col gap-0.5 p-2 sm:p-3 rounded-xl bg-red-50/50 dark:bg-red-500/10">
+          <span class="text-label-xs uppercase tracking-wide text-text-tertiary dark:text-text-tertiary-dark">Total gastos</span>
+          <span class="text-body-sm sm:text-body font-bold text-red-600 dark:text-red-400 tabular-nums">{{ formatCurrency(totalExpense) }}</span>
+        </div>
+        <div class="flex flex-col gap-0.5 p-2 sm:p-3 rounded-xl" [ngClass]="balance >= 0 ? 'bg-emerald-50/50 dark:bg-emerald-500/10' : 'bg-red-50/50 dark:bg-red-500/10'">
+          <span class="text-label-xs uppercase tracking-wide text-text-tertiary dark:text-text-tertiary-dark">Balance</span>
+          <span class="text-body-sm sm:text-body font-bold tabular-nums" [ngClass]="balance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'">
+            {{ balance >= 0 ? '+' : '' }}{{ formatCurrency(balance) }}
+          </span>
+        </div>
+        <div class="flex flex-col gap-0.5 p-2 sm:p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/50">
+          <span class="text-label-xs uppercase tracking-wide text-text-tertiary dark:text-text-tertiary-dark">Prom. gastos</span>
+          <span class="text-body-sm sm:text-body font-bold text-text-secondary dark:text-text-secondary-dark tabular-nums">{{ formatCurrency(avgMonthlyExpense) }}</span>
+        </div>
+      </div>
+    }
   </div>
 </article>

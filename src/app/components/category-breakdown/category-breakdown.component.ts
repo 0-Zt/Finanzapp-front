@@ -1,10 +1,12 @@
 import {
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   Input,
   OnChanges,
   OnInit,
   SimpleChanges,
+  inject,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CategoryBreakdownItem } from '../../models/dashboard.models';
@@ -19,6 +21,7 @@ import {
   ApexFill,
   ApexStroke,
   ApexResponsive,
+  ApexStates,
 } from 'ng-apexcharts';
 
 export type ChartOptions = {
@@ -33,6 +36,7 @@ export type ChartOptions = {
   stroke: ApexStroke;
   colors: string[];
   responsive: ApexResponsive[];
+  states: ApexStates;
 };
 
 @Component({
@@ -43,11 +47,14 @@ export type ChartOptions = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryBreakdownComponent implements OnChanges, OnInit {
+  private readonly cdr = inject(ChangeDetectorRef);
+
   @Input() items: CategoryBreakdownItem[] = [];
   @Input() title = 'Categorias del mes';
   @Input() description = 'Distribución de gastos del mes actual.';
 
   chartOptions: Partial<ChartOptions> = {};
+  highlightedIndex: number | null = null;
   private isDarkMode = false;
 
   private readonly currencyFormatter = new Intl.NumberFormat('es-CL', {
@@ -89,6 +96,16 @@ export class CategoryBreakdownComponent implements OnChanges, OnInit {
     return this.currencyFormatter.format(value);
   }
 
+  onLegendHover(index: number): void {
+    this.highlightedIndex = index;
+    this.cdr.markForCheck();
+  }
+
+  onLegendLeave(): void {
+    this.highlightedIndex = null;
+    this.cdr.markForCheck();
+  }
+
   private checkDarkMode(): void {
     if (typeof document !== 'undefined') {
       this.isDarkMode = document.documentElement.classList.contains('dark');
@@ -111,8 +128,8 @@ export class CategoryBreakdownComponent implements OnChanges, OnInit {
       colors: colors,
       chart: {
         type: 'donut',
-        height: 280,
-        fontFamily: 'Inter, system-ui, sans-serif',
+        height: 260,
+        fontFamily: 'Manrope, Inter, system-ui, sans-serif',
         background: 'transparent',
         animations: {
           enabled: true,
@@ -130,22 +147,22 @@ export class CategoryBreakdownComponent implements OnChanges, OnInit {
       plotOptions: {
         pie: {
           donut: {
-            size: '70%',
+            size: '68%',
             labels: {
               show: true,
               name: {
                 show: true,
-                fontSize: '14px',
+                fontSize: '13px',
                 fontWeight: 600,
                 color: this.isDarkMode ? '#e2e8f0' : '#334155',
-                offsetY: -10,
+                offsetY: -8,
               },
               value: {
                 show: true,
-                fontSize: '22px',
+                fontSize: '20px',
                 fontWeight: 700,
                 color: this.isDarkMode ? '#f8fafc' : '#0f172a',
-                offsetY: 5,
+                offsetY: 4,
                 formatter: (val: string) => {
                   return this.formatValue(Number(val));
                 },
@@ -154,7 +171,7 @@ export class CategoryBreakdownComponent implements OnChanges, OnInit {
                 show: true,
                 showAlways: true,
                 label: 'Total',
-                fontSize: '12px',
+                fontSize: '11px',
                 fontWeight: 500,
                 color: this.isDarkMode ? '#94a3b8' : '#64748b',
                 formatter: () => {
@@ -166,12 +183,25 @@ export class CategoryBreakdownComponent implements OnChanges, OnInit {
           expandOnClick: true,
         },
       },
+      states: {
+        hover: {
+          filter: {
+            type: 'darken',
+          },
+        },
+        active: {
+          allowMultipleDataPointsSelection: false,
+          filter: {
+            type: 'darken',
+          },
+        },
+      },
       dataLabels: {
         enabled: false,
       },
       stroke: {
         show: true,
-        width: 2,
+        width: 3,
         colors: [this.isDarkMode ? '#1e293b' : '#ffffff'],
       },
       fill: {
@@ -179,9 +209,9 @@ export class CategoryBreakdownComponent implements OnChanges, OnInit {
         gradient: {
           shade: this.isDarkMode ? 'dark' : 'light',
           type: 'vertical',
-          shadeIntensity: 0.2,
+          shadeIntensity: 0.15,
           opacityFrom: 1,
-          opacityTo: 0.9,
+          opacityTo: 0.92,
           stops: [0, 100],
         },
       },
@@ -190,26 +220,46 @@ export class CategoryBreakdownComponent implements OnChanges, OnInit {
         theme: this.isDarkMode ? 'dark' : 'light',
         style: {
           fontSize: '12px',
-          fontFamily: 'Inter, system-ui, sans-serif',
+          fontFamily: 'Manrope, Inter, system-ui, sans-serif',
         },
-        y: {
-          formatter: (value: number) => this.formatValue(value),
+        custom: ({ series, seriesIndex, w }) => {
+          const value = series[seriesIndex];
+          const label = w.globals.labels[seriesIndex];
+          const percent = this.items[seriesIndex]?.percent ?? 0;
+          const color = colors[seriesIndex];
+
+          return `
+            <div class="apexcharts-tooltip-custom" style="padding: 10px 14px; min-width: 160px;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+                <span style="width: 10px; height: 10px; border-radius: 50%; background: ${color};"></span>
+                <span style="font-weight: 600; color: ${this.isDarkMode ? '#f1f5f9' : '#0f172a'};">${label}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; gap: 16px;">
+                <span style="color: ${this.isDarkMode ? '#94a3b8' : '#64748b'};">Monto</span>
+                <span style="font-weight: 600; color: ${this.isDarkMode ? '#f1f5f9' : '#0f172a'};">${this.formatValue(value)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; gap: 16px; margin-top: 2px;">
+                <span style="color: ${this.isDarkMode ? '#94a3b8' : '#64748b'};">Del total</span>
+                <span style="font-weight: 600; color: ${color};">${percent}%</span>
+              </div>
+            </div>
+          `;
         },
       },
       legend: {
-        show: false, // Usamos nuestra propia leyenda
+        show: false,
       },
       responsive: [
         {
           breakpoint: 480,
           options: {
             chart: {
-              height: 240,
+              height: 220,
             },
             plotOptions: {
               pie: {
                 donut: {
-                  size: '65%',
+                  size: '62%',
                 },
               },
             },

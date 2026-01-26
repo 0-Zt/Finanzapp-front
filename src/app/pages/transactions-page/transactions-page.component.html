@@ -1,19 +1,14 @@
 <section class="page-shell">
-  <!-- Header -->
-  <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-    <div>
-      <h1 class="text-2xl sm:text-3xl font-semibold text-slate-900 dark:text-white">Transacciones</h1>
-      <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
-        Consulta y analiza todos tus movimientos financieros.
-      </p>
+  <app-page-header>
+    <div page-actions>
+      <button type="button" class="primary-button" (click)="onAddTransaction()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 mr-1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Nueva transacción
+      </button>
     </div>
-    <button type="button" class="primary-button" (click)="onAddTransaction()">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 mr-1.5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-      </svg>
-      Nueva transacción
-    </button>
-  </header>
+  </app-page-header>
 
   <!-- Loading State -->
   @if (isLoading) {

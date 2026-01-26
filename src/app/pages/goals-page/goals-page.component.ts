@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FinancialGoalsService } from '../../services/financial-goals.service';
+import { PageHeaderComponent } from '../../components/page-header/page-header.component';
 import {
   ApiFinancialGoal,
   CreateFinancialGoalPayload,
@@ -19,7 +20,7 @@ interface GoalFormState {
 @Component({
   selector: 'app-goals-page',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PageHeaderComponent],
   templateUrl: './goals-page.component.html',
 })
 export class GoalsPageComponent implements OnInit {

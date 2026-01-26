@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DashboardService } from '../../services/dashboard.service';
 import { TransactionsService } from '../../services/transactions.service';
+import { PageHeaderComponent } from '../../components/page-header/page-header.component';
 import {
   ApiExpenseCategory,
   ApiTransaction,
@@ -26,7 +27,7 @@ interface SavingsFormState {
 @Component({
   selector: 'app-savings-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TransactionsCardComponent],
+  imports: [CommonModule, FormsModule, TransactionsCardComponent, PageHeaderComponent],
   templateUrl: './savings-page.component.html',
 })
 export class SavingsPageComponent implements OnInit {

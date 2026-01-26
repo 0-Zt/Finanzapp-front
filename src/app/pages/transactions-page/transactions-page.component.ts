@@ -15,6 +15,7 @@ import {
 import { TransactionListGroupedComponent } from '../../components/transaction-list-grouped/transaction-list-grouped.component';
 import { TransactionDialogComponent } from '../../components/transaction-dialog/transaction-dialog.component';
 import { ExpenseTrendChartComponent } from '../../components/expense-trend-chart/expense-trend-chart.component';
+import { PageHeaderComponent } from '../../components/page-header/page-header.component';
 import { DashboardService } from '../../services/dashboard.service';
 import { TransactionsService } from '../../services/transactions.service';
 import { TransactionEventsService } from '../../services/transaction-events.service';
@@ -33,7 +34,14 @@ const TRANSACTION_PAGE_SIZE = 15;
 @Component({
   selector: 'app-transactions-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, TransactionListGroupedComponent, TransactionDialogComponent, ExpenseTrendChartComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    TransactionListGroupedComponent,
+    TransactionDialogComponent,
+    ExpenseTrendChartComponent,
+    PageHeaderComponent,
+  ],
   templateUrl: './transactions-page.component.html',
 })
 export class TransactionsPageComponent implements OnInit {

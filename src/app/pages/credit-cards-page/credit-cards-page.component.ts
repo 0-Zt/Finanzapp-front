@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CreditCardsService } from '../../services/credit-cards.service';
 import { CategoriesService } from '../../services/categories.service';
+import { PageHeaderComponent } from '../../components/page-header/page-header.component';
 import {
   ApiCreditCardWithSummary,
   ApiCreditCardTransaction,
@@ -50,7 +51,7 @@ type FormType = 'card' | 'transaction' | 'payment' | null;
 @Component({
   selector: 'app-credit-cards-page',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PageHeaderComponent],
   templateUrl: './credit-cards-page.component.html',
 })
 export class CreditCardsPageComponent implements OnInit {

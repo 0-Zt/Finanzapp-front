@@ -1,28 +1,28 @@
 <article class="glass-card animate-fade-up h-full flex flex-col">
-  <header class="flex flex-wrap items-start justify-between gap-4">
+  <header class="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
     <div>
-      <h2 class="text-xl font-semibold text-slate-900 dark:text-white">{{ title }}</h2>
-      <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+      <h2 class="text-heading font-semibold text-text-primary dark:text-text-primary-dark">{{ title }}</h2>
+      <p class="mt-1 text-body-sm text-text-secondary dark:text-text-secondary-dark">
         {{ description }}
       </p>
     </div>
-    <span class="filter-chip">Periodo actual</span>
+    <span class="filter-chip text-caption">Periodo actual</span>
   </header>
 
   @if (!items.length) {
-    <div class="mt-6 flex-1 flex items-center justify-center">
-      <div class="text-center text-slate-400 dark:text-slate-500">
+    <div class="mt-4 sm:mt-6 flex-1 flex items-center justify-center">
+      <div class="text-center text-text-tertiary dark:text-text-tertiary-dark">
         <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
         </svg>
-        <p class="text-sm">No hay gastos registrados en este periodo.</p>
+        <p class="text-body-sm">No hay gastos registrados en este periodo.</p>
       </div>
     </div>
   } @else {
-    <div class="mt-4 flex flex-col items-center gap-4 flex-1">
+    <div class="mt-3 sm:mt-4 flex flex-col items-center gap-3 sm:gap-4 flex-1">
       <!-- ApexCharts Donut -->
-      <div class="w-full max-w-xs">
+      <div class="w-full max-w-[220px] sm:max-w-xs">
         @if (chartOptions.series && chartOptions.series.length > 0) {
           <apx-chart
             [series]="chartOptions.series!"
@@ -36,27 +36,53 @@
             [legend]="chartOptions.legend!"
             [colors]="chartOptions.colors!"
             [responsive]="chartOptions.responsive!"
+            [states]="chartOptions.states!"
           ></apx-chart>
         }
       </div>
 
-      <!-- Legend -->
-      <ul class="flex flex-col gap-2 text-sm w-full">
-        @for (item of items; track item.label) {
-          <li class="flex items-center justify-between gap-3 rounded-xl border border-slate-200/60 bg-white/70 px-3 py-2 dark:border-slate-800/70 dark:bg-slate-900/60 transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-sm">
+      <!-- Legend with hover highlight -->
+      <ul class="flex flex-col gap-1.5 sm:gap-2 text-body-sm w-full">
+        @for (item of items; track item.label; let i = $index) {
+          <li
+            class="flex items-center justify-between gap-3 rounded-xl px-3 py-2 transition-all duration-200 cursor-default"
+            [ngClass]="{
+              'bg-white/70 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/70 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-sm': highlightedIndex === null || highlightedIndex === i,
+              'bg-slate-50/50 dark:bg-slate-900/30 border border-transparent opacity-50': highlightedIndex !== null && highlightedIndex !== i
+            }"
+            (mouseenter)="onLegendHover(i)"
+            (mouseleave)="onLegendLeave()"
+          >
             <div class="flex items-center gap-2 min-w-0">
               <span
-                class="h-3 w-3 rounded-full flex-shrink-0 shadow-sm"
+                class="h-3 w-3 rounded-full flex-shrink-0 shadow-sm transition-transform duration-200"
                 [style.backgroundColor]="item.color"
+                [ngClass]="{'scale-125': highlightedIndex === i}"
               ></span>
-              <span class="text-slate-600 dark:text-slate-300 truncate">{{ item.label }}</span>
+              <span class="text-text-secondary dark:text-text-secondary-dark truncate">{{ item.label }}</span>
             </div>
-            <span class="font-semibold text-slate-900 dark:text-white flex-shrink-0">
-              {{ item.percent }}%
-            </span>
+            <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+              <span class="text-caption text-text-tertiary dark:text-text-tertiary-dark hidden sm:inline tabular-nums">
+                {{ formatValue(item.value) }}
+              </span>
+              <span
+                class="font-bold text-body-sm tabular-nums min-w-[3ch] text-right"
+                [style.color]="item.color"
+              >
+                {{ item.percent }}%
+              </span>
+            </div>
           </li>
         }
       </ul>
+
+      <!-- Total footer -->
+      <div class="w-full pt-2 mt-auto border-t border-border-subtle dark:border-border-subtle-dark">
+        <div class="flex items-center justify-between text-body-sm">
+          <span class="text-text-tertiary dark:text-text-tertiary-dark">Total del periodo</span>
+          <span class="font-bold text-text-primary dark:text-text-primary-dark tabular-nums">{{ formatValue(total) }}</span>
+        </div>
+      </div>
     </div>
   }
 </article>

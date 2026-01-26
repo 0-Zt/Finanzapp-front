@@ -19,9 +19,15 @@
           }
         </select>
       }
-      <button type="button" class="quiet-button">
-        {{ actionLabel }}
-      </button>
+      @if (actionLink) {
+        <a
+          [routerLink]="actionLink"
+          [queryParams]="actionQueryParams"
+          class="quiet-button"
+        >
+          {{ actionLabel }}
+        </a>
+      }
     </div>
   </header>
 

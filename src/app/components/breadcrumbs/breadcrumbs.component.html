@@ -1,0 +1,23 @@
+@if (displayBreadcrumbs.length) {
+  <nav class="flex items-center text-caption text-text-tertiary dark:text-text-tertiary-dark" aria-label="Breadcrumb">
+    <ol class="flex flex-wrap items-center gap-2">
+      @for (crumb of displayBreadcrumbs; track crumb.url; let last = $last) {
+        <li class="flex items-center gap-2">
+          @if (last) {
+            <span class="text-text-primary dark:text-text-primary-dark" aria-current="page">
+              {{ crumb.label }}
+            </span>
+          } @else {
+            <a
+              [routerLink]="crumb.url"
+              class="transition-colors hover:text-brand-600 dark:hover:text-brand-400"
+            >
+              {{ crumb.label }}
+            </a>
+            <span class="text-text-tertiary dark:text-text-tertiary-dark">/</span>
+          }
+        </li>
+      }
+    </ol>
+  </nav>
+}

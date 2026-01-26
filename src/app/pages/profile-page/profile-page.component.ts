@@ -1,12 +1,16 @@
 import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, finalize, map, of, switchMap } from 'rxjs';
 import { ProfileService } from '../../services/profile.service';
 import { ToastService } from '../../services/toast.service';
 import { AuthService } from '../../services/auth.service';
 import { CategoryBudgetsService } from '../../services/category-budgets.service';
 import { CategoriesService } from '../../services/categories.service';
+import { TransactionsService } from '../../services/transactions.service';
+import { PageHeaderComponent } from '../../components/page-header/page-header.component';
 import { BudgetProgressBarComponent } from '../../components/budget-progress-bar/budget-progress-bar.component';
 import {
   UserProfile,
@@ -19,7 +23,8 @@ import {
   ApiSuggestedBudget,
   CreateCategoryBudgetPayload,
   UpdateCategoryBudgetPayload,
-  NotificationPreferences
+  NotificationPreferences,
+  CreateTransactionPayload
 } from '../../models/api.models';
 
 export type ProfileSection = 'personal' | 'fixed-expenses' | 'budgets' | 'notifications';
@@ -34,7 +39,7 @@ export interface ProfileMenuItem {
 @Component({
   selector: 'app-profile-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, BudgetProgressBarComponent],
+  imports: [CommonModule, ReactiveFormsModule, BudgetProgressBarComponent, PageHeaderComponent],
   templateUrl: './profile-page.component.html',
 })
 export class ProfilePageComponent implements OnInit {
@@ -44,6 +49,8 @@ export class ProfilePageComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly categoryBudgetsService = inject(CategoryBudgetsService);
   private readonly categoriesService = inject(CategoriesService);
+  private readonly transactionsService = inject(TransactionsService);
+  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
 
   // Navigation
@@ -102,11 +109,14 @@ export class ProfilePageComponent implements OnInit {
     description: ['', Validators.required],
     amount: [0, [Validators.required, Validators.min(0)]],
     dueDay: [1, [Validators.min(1), Validators.max(31)]],
+    categoryId: [null],
     isActive: [true],
+    applyToCurrentMonth: [false],
   });
 
   editingExpenseId: number | null = null;
   isExpenseFormOpen = false;
+  private applyToCurrentMonthTouched = false;
 
   budgetForm: FormGroup = this.fb.group({
     category_id: [null, Validators.required],
@@ -159,6 +169,31 @@ export class ProfilePageComponent implements OnInit {
         }
         this.selectedBudgetSuggestion = this.getSuggestedBudget(categoryId ?? null);
       });
+    this.expenseForm.get('dueDay')?.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        if (this.editingExpenseId || this.applyToCurrentMonthTouched) {
+          return;
+        }
+        const dueDay = this.normalizeDueDay(value);
+        const shouldApply = this.shouldApplyToCurrentMonth(dueDay);
+        this.expenseForm.patchValue({ applyToCurrentMonth: shouldApply }, { emitEvent: false });
+      });
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const section = params.get('section');
+        if (this.isProfileSection(section)) {
+          this.setActiveSection(section);
+        }
+      });
+  }
+
+  private isProfileSection(section: string | null): section is ProfileSection {
+    if (!section) {
+      return false;
+    }
+    return this.menuItems.some((item) => item.id === section);
   }
 
   loadProfile(): void {
@@ -264,19 +299,25 @@ export class ProfilePageComponent implements OnInit {
   openExpenseForm(expense?: FixedExpense): void {
     if (expense) {
       this.editingExpenseId = expense.id;
+      this.applyToCurrentMonthTouched = false;
       this.expenseForm.patchValue({
         description: expense.description,
         amount: expense.amount,
         dueDay: expense.due_day,
+        categoryId: expense.category_id ?? null,
         isActive: expense.is_active,
+        applyToCurrentMonth: false,
       });
     } else {
       this.editingExpenseId = null;
+      this.applyToCurrentMonthTouched = false;
       this.expenseForm.reset({
         description: '',
         amount: 0,
         dueDay: 1,
+        categoryId: null,
         isActive: true,
+        applyToCurrentMonth: this.shouldApplyToCurrentMonth(1),
       });
     }
     this.isExpenseFormOpen = true;
@@ -285,7 +326,12 @@ export class ProfilePageComponent implements OnInit {
   closeExpenseForm(): void {
     this.isExpenseFormOpen = false;
     this.editingExpenseId = null;
+    this.applyToCurrentMonthTouched = false;
     this.expenseForm.reset();
+  }
+
+  onApplyToCurrentMonthTouched(): void {
+    this.applyToCurrentMonthTouched = true;
   }
 
   onSaveExpense(): void {
@@ -296,12 +342,27 @@ export class ProfilePageComponent implements OnInit {
 
     this.isSavingExpense = true;
     const formValue = this.expenseForm.value;
+    const amount = Number(formValue.amount) || 0;
+    const dueDay = this.normalizeDueDay(formValue.dueDay);
+    const shouldRegisterTransaction =
+      !this.editingExpenseId &&
+      !!formValue.applyToCurrentMonth &&
+      amount > 0;
+    const transactionPayload = shouldRegisterTransaction
+      ? this.buildFixedExpenseTransactionPayload({
+          description: String(formValue.description || '').trim(),
+          amount,
+          dueDay,
+          categoryId: formValue.categoryId ?? null,
+        })
+      : null;
 
     if (this.editingExpenseId) {
       const payload: UpdateFixedExpensePayload = {
         description: formValue.description,
         amount: formValue.amount,
         dueDay: formValue.dueDay,
+        categoryId: formValue.categoryId ?? undefined,
         isActive: formValue.isActive,
       };
 
@@ -322,23 +383,44 @@ export class ProfilePageComponent implements OnInit {
     } else {
       const payload: CreateFixedExpensePayload = {
         description: formValue.description,
-        amount: formValue.amount,
-        dueDay: formValue.dueDay,
+        amount,
+        dueDay,
+        categoryId: formValue.categoryId ?? undefined,
         isActive: formValue.isActive,
       };
 
+      const registerTransaction$ = shouldRegisterTransaction && transactionPayload
+        ? this.transactionsService.createTransaction(transactionPayload).pipe(
+            map(() => ({ transactionCreated: true })),
+            catchError(() => of({ transactionCreated: false }))
+          )
+        : of({ transactionCreated: null });
+
       this.profileService.createFixedExpense(payload)
-        .pipe(takeUntilDestroyed(this.destroyRef))
+        .pipe(
+          switchMap(() => registerTransaction$),
+          finalize(() => {
+            this.isSavingExpense = false;
+          }),
+          takeUntilDestroyed(this.destroyRef)
+        )
         .subscribe({
-          next: () => {
-            this.toastService.success('Gasto fijo creado');
+          next: (result) => {
+            if (shouldRegisterTransaction) {
+              if (result.transactionCreated) {
+                this.toastService.success('Gasto fijo creado y cobro registrado');
+              } else {
+                this.toastService.success('Gasto fijo creado');
+                this.toastService.error('No se pudo registrar el cobro de este mes');
+              }
+            } else {
+              this.toastService.success('Gasto fijo creado');
+            }
             this.closeExpenseForm();
             this.loadFixedExpenses();
-            this.isSavingExpense = false;
           },
           error: () => {
             this.toastService.error('Error al crear el gasto fijo');
-            this.isSavingExpense = false;
           },
         });
     }
@@ -366,10 +448,34 @@ export class ProfilePageComponent implements OnInit {
     return this.currencyFormatter.format(amount);
   }
 
+  get currentFixedExpenseDueDate(): string | null {
+    if (this.editingExpenseId) {
+      return null;
+    }
+    const dueDay = this.normalizeDueDay(this.expenseForm.get('dueDay')?.value);
+    return this.buildFixedExpenseDueDate(dueDay);
+  }
+
+  get isFixedExpenseDueDatePassed(): boolean {
+    if (this.editingExpenseId) {
+      return false;
+    }
+    const dueDay = this.normalizeDueDay(this.expenseForm.get('dueDay')?.value);
+    return this.isDueDayPastOrToday(dueDay);
+  }
+
   getTotalFixedExpenses(): number {
     return this.fixedExpenses
       .filter((e) => e.is_active)
       .reduce((sum, e) => sum + e.amount, 0);
+  }
+
+  getExpenseCategoryName(categoryId: number | null): string {
+    if (!categoryId) {
+      return 'Sin categoria';
+    }
+    const match = this.categories.find((category) => category.id === categoryId);
+    return match?.name ?? 'Sin categoria';
   }
 
   onBudgetMonthChange(month: string): void {
@@ -415,6 +521,65 @@ export class ProfilePageComponent implements OnInit {
     const year = parts.find((part) => part.type === 'year')?.value ?? `${new Date().getUTCFullYear()}`;
     const month = parts.find((part) => part.type === 'month')?.value ?? `${new Date().getUTCMonth() + 1}`.padStart(2, '0');
     return `${year}-${month}`;
+  }
+
+  private normalizeDueDay(value: unknown): number {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) {
+      return 1;
+    }
+    return Math.min(Math.max(Math.round(parsed), 1), 31);
+  }
+
+  private shouldApplyToCurrentMonth(dueDay: number): boolean {
+    return this.isDueDayPastOrToday(dueDay);
+  }
+
+  private isDueDayPastOrToday(dueDay: number): boolean {
+    const { day } = this.getCurrentDateParts(this.profileTimeZone);
+    return dueDay <= day;
+  }
+
+  private buildFixedExpenseDueDate(dueDay: number): string {
+    const { year, month } = this.getCurrentDateParts(this.profileTimeZone);
+    const safeDay = this.getSafeDueDay(dueDay, year, month);
+    return `${year}-${String(month).padStart(2, '0')}-${String(safeDay).padStart(2, '0')}`;
+  }
+
+  private getSafeDueDay(dueDay: number, year: number, month: number): number {
+    const daysInMonth = new Date(year, month, 0).getDate();
+    return Math.min(Math.max(dueDay, 1), daysInMonth);
+  }
+
+  private getCurrentDateParts(timeZone: string): { year: number; month: number; day: number } {
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const parts = formatter.formatToParts(new Date());
+    const year = Number(parts.find((part) => part.type === 'year')?.value ?? new Date().getUTCFullYear());
+    const month = Number(parts.find((part) => part.type === 'month')?.value ?? new Date().getUTCMonth() + 1);
+    const day = Number(parts.find((part) => part.type === 'day')?.value ?? new Date().getUTCDate());
+    return { year, month, day };
+  }
+
+  private buildFixedExpenseTransactionPayload(input: {
+    description: string;
+    amount: number;
+    dueDay: number;
+    categoryId: number | null;
+  }): CreateTransactionPayload {
+    const dueDate = this.buildFixedExpenseDueDate(input.dueDay);
+    const amount = Math.abs(input.amount);
+    return {
+      transaction_date: new Date(`${dueDate}T00:00:00`).toISOString(),
+      description: input.description,
+      category_id: input.categoryId ?? null,
+      amount: amount * -1,
+      status: this.isDueDayPastOrToday(input.dueDay) ? 'completed' : 'pending',
+    };
   }
 
   loadBudgets(): void {

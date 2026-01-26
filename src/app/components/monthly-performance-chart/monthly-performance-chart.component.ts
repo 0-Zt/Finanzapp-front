@@ -58,6 +58,18 @@ export class MonthlyPerformanceChartComponent implements OnChanges, OnInit {
   chartOptions: Partial<ChartOptions> = {};
   private isDarkMode = false;
 
+  // Summary stats computed from data
+  totalIncome = 0;
+  totalExpense = 0;
+  balance = 0;
+  avgMonthlyExpense = 0;
+
+  private readonly currencyFormatter = new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    maximumFractionDigits: 0,
+  });
+
   ngOnInit(): void {
     this.checkDarkMode();
     this.setupChart();
@@ -79,6 +91,7 @@ export class MonthlyPerformanceChartComponent implements OnChanges, OnInit {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['data'] || changes['period']) {
+      this.computeSummaryStats();
       this.setupChart();
     }
   }
@@ -87,10 +100,21 @@ export class MonthlyPerformanceChartComponent implements OnChanges, OnInit {
     this.periodChange.emit(value);
   }
 
+  formatCurrency(value: number): string {
+    return this.currencyFormatter.format(value);
+  }
+
   private checkDarkMode(): void {
     if (typeof document !== 'undefined') {
       this.isDarkMode = document.documentElement.classList.contains('dark');
     }
+  }
+
+  private computeSummaryStats(): void {
+    this.totalIncome = this.data.reduce((sum, d) => sum + (d.incomeValue ?? 0), 0);
+    this.totalExpense = this.data.reduce((sum, d) => sum + (d.expenseValue ?? 0), 0);
+    this.balance = this.totalIncome - this.totalExpense;
+    this.avgMonthlyExpense = this.data.length > 0 ? this.totalExpense / this.data.length : 0;
   }
 
   private setupChart(): void {
@@ -98,8 +122,9 @@ export class MonthlyPerformanceChartComponent implements OnChanges, OnInit {
     const incomeData = this.data.map((d) => d.income);
     const expenseData = this.data.map((d) => d.expense);
 
-    // Encontrar el valor máximo para calcular porcentajes
-    const maxValue = Math.max(...incomeData, ...expenseData, 1);
+    // Store real values for custom tooltip
+    const incomeValues = this.data.map((d) => d.incomeValue ?? 0);
+    const expenseValues = this.data.map((d) => d.expenseValue ?? 0);
 
     this.chartOptions = {
       series: [
@@ -112,11 +137,11 @@ export class MonthlyPerformanceChartComponent implements OnChanges, OnInit {
           data: expenseData,
         },
       ],
-      colors: ['#10b981', '#f43f5e'], // emerald-500, rose-500
+      colors: ['#059669', '#dc2626'], // emerald-600, red-600 (better contrast)
       chart: {
         type: 'bar',
-        height: 280,
-        fontFamily: 'Inter, system-ui, sans-serif',
+        height: 260,
+        fontFamily: 'Manrope, Inter, system-ui, sans-serif',
         background: 'transparent',
         animations: {
           enabled: true,
@@ -137,8 +162,8 @@ export class MonthlyPerformanceChartComponent implements OnChanges, OnInit {
       plotOptions: {
         bar: {
           horizontal: false,
-          columnWidth: '65%',
-          borderRadius: 6,
+          columnWidth: '60%',
+          borderRadius: 4,
           borderRadiusApplication: 'end',
           dataLabels: {
             position: 'top',
@@ -158,9 +183,9 @@ export class MonthlyPerformanceChartComponent implements OnChanges, OnInit {
         gradient: {
           shade: this.isDarkMode ? 'dark' : 'light',
           type: 'vertical',
-          shadeIntensity: 0.2,
+          shadeIntensity: 0.15,
           opacityFrom: 1,
-          opacityTo: 0.85,
+          opacityTo: 0.9,
           stops: [0, 100],
         },
       },
@@ -193,7 +218,7 @@ export class MonthlyPerformanceChartComponent implements OnChanges, OnInit {
         },
         max: 100,
         min: 0,
-        tickAmount: 5,
+        tickAmount: 4,
       },
       grid: {
         borderColor: this.isDarkMode ? '#334155' : '#e2e8f0',
@@ -210,9 +235,9 @@ export class MonthlyPerformanceChartComponent implements OnChanges, OnInit {
         },
         padding: {
           top: 0,
-          right: 0,
+          right: 4,
           bottom: 0,
-          left: 0,
+          left: 4,
         },
       },
       tooltip: {
@@ -222,14 +247,45 @@ export class MonthlyPerformanceChartComponent implements OnChanges, OnInit {
         theme: this.isDarkMode ? 'dark' : 'light',
         style: {
           fontSize: '12px',
-          fontFamily: 'Inter, system-ui, sans-serif',
+          fontFamily: 'Manrope, Inter, system-ui, sans-serif',
         },
-        y: {
-          formatter: (value: number) => value.toFixed(0) + '%',
+        custom: ({ series, seriesIndex, dataPointIndex, w }) => {
+          const incomeVal = incomeValues[dataPointIndex];
+          const expenseVal = expenseValues[dataPointIndex];
+          const label = labels[dataPointIndex];
+          const balanceVal = incomeVal - expenseVal;
+          const balanceClass = balanceVal >= 0 ? 'text-emerald-600' : 'text-red-600';
+          const balanceSign = balanceVal >= 0 ? '+' : '';
+
+          return `
+            <div class="apexcharts-tooltip-custom" style="padding: 12px 14px; min-width: 180px;">
+              <div style="font-weight: 600; margin-bottom: 8px; color: ${this.isDarkMode ? '#f1f5f9' : '#0f172a'};">
+                ${label}
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                <span style="display: flex; align-items: center; gap: 6px;">
+                  <span style="width: 8px; height: 8px; border-radius: 50%; background: #059669;"></span>
+                  <span style="color: ${this.isDarkMode ? '#cbd5e1' : '#475569'};">Ingresos</span>
+                </span>
+                <span style="font-weight: 600; color: #059669;">${this.formatCurrency(incomeVal)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                <span style="display: flex; align-items: center; gap: 6px;">
+                  <span style="width: 8px; height: 8px; border-radius: 50%; background: #dc2626;"></span>
+                  <span style="color: ${this.isDarkMode ? '#cbd5e1' : '#475569'};">Gastos</span>
+                </span>
+                <span style="font-weight: 600; color: #dc2626;">${this.formatCurrency(expenseVal)}</span>
+              </div>
+              <div style="border-top: 1px solid ${this.isDarkMode ? '#334155' : '#e2e8f0'}; padding-top: 8px; display: flex; justify-content: space-between;">
+                <span style="color: ${this.isDarkMode ? '#94a3b8' : '#64748b'};">Balance</span>
+                <span style="font-weight: 700; color: ${balanceVal >= 0 ? '#059669' : '#dc2626'};">${balanceSign}${this.formatCurrency(balanceVal)}</span>
+              </div>
+            </div>
+          `;
         },
       },
       legend: {
-        show: false, // Usamos nuestra propia leyenda en el header
+        show: false,
       },
     };
   }

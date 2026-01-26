@@ -91,7 +91,7 @@ export interface DashboardPayload {
 export interface CreateTransactionPayload {
   transaction_date: string;
   description: string;
-  category_id: number;
+  category_id: number | null;
   amount: number;
   status: string;
   account?: string | null;

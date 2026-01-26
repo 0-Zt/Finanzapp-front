@@ -1,10 +1,5 @@
 <section class="page-shell">
-  <header class="mb-6">
-    <h1 class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Mi perfil</h1>
-    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
-      Gestiona tu informacion personal y preferencias
-    </p>
-  </header>
+  <app-page-header></app-page-header>
 
   @if (isLoading) {
     <div class="flex gap-6">
@@ -239,6 +234,11 @@
                         <span class="ml-2 text-amber-500">(Inactivo)</span>
                       }
                     </span>
+                    @if (expense.category_id) {
+                      <span class="text-xs text-slate-500 dark:text-slate-400">
+                        Categoria: {{ getExpenseCategoryName(expense.category_id) }}
+                      </span>
+                    }
                   </div>
                   <div class="flex items-center gap-3">
                     <span class="font-semibold text-slate-900 dark:text-white">
@@ -603,6 +603,22 @@
           </div>
 
           <div class="flex flex-col gap-2">
+            <label for="expenseCategory" class="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Categoria (opcional)
+            </label>
+            <select
+              id="expenseCategory"
+              formControlName="categoryId"
+              class="select-field"
+            >
+              <option [ngValue]="null">Sin categoria</option>
+              @for (category of categories; track category.id) {
+                <option [ngValue]="category.id">{{ category.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="flex flex-col gap-2">
             <label for="expenseDueDay" class="text-sm font-medium text-slate-700 dark:text-slate-300">
               Dia de vencimiento (1-31)
             </label>
@@ -627,6 +643,34 @@
               Activo
             </label>
           </div>
+
+          @if (!editingExpenseId) {
+            <div class="rounded-xl border border-slate-200/70 bg-white/50 p-4 text-sm text-slate-600 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-slate-300">
+              <label class="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  formControlName="applyToCurrentMonth"
+                  (change)="onApplyToCurrentMonthTouched()"
+                  class="mt-1 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 dark:border-slate-600 dark:bg-slate-700"
+                />
+                <span class="flex flex-col gap-1">
+                  <span class="text-sm font-medium text-slate-800 dark:text-slate-100">
+                    Registrar cobro este mes
+                  </span>
+                  <span class="text-xs text-slate-500 dark:text-slate-400">
+                    @if (currentFixedExpenseDueDate) {
+                      Se creara una transaccion el {{ currentFixedExpenseDueDate }}.
+                    }
+                    @if (isFixedExpenseDueDatePassed) {
+                      El vencimiento ya paso este mes.
+                    } @else {
+                      Si prefieres, puedes comenzar desde el proximo mes.
+                    }
+                  </span>
+                </span>
+              </label>
+            </div>
+          }
 
           <div class="mt-2 flex gap-3">
             <button

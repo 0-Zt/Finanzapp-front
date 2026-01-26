@@ -20,8 +20,10 @@ export interface SummaryCard {
 
 export interface MonthlyPerformancePoint {
   label: string;
-  income: number;
-  expense: number;
+  income: number;        // Percentage (0-100) for bar height
+  expense: number;       // Percentage (0-100) for bar height
+  incomeValue?: number;  // Real value in CLP for tooltip
+  expenseValue?: number; // Real value in CLP for tooltip
 }
 
 export interface Transaction {

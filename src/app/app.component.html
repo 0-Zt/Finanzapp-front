@@ -1,13 +1,19 @@
 <div class="app-shell">
-  <app-navbar
-    [isDarkMode]="isDarkMode"
-    (toggleDarkMode)="toggleDarkMode()"
-  ></app-navbar>
+  @if (!isPublicLayout) {
+    <app-navbar
+      [isDarkMode]="isDarkMode"
+      (toggleDarkMode)="toggleDarkMode()"
+    ></app-navbar>
+  }
 
-  <main class="flex-1 animate-page-enter">
-    <router-outlet />
+  <main class="flex-1 relative overflow-hidden">
+    <div class="route-container" [@routeAnimations]="prepareRoute(outlet)">
+      <router-outlet #outlet="outlet" />
+    </div>
   </main>
 
-  <app-transaction-fab></app-transaction-fab>
+  @if (!isPublicLayout) {
+    <app-transaction-fab></app-transaction-fab>
+  }
   <app-toast></app-toast>
 </div>

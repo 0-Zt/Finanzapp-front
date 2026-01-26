@@ -84,6 +84,7 @@
         [filters]="transactionFilters"
         [monthOptions]="monthOptions"
         [hasMore]="hasMoreTransactions"
+        [actionLink]="'/transactions'"
         (filtersChange)="onFiltersChange($event)"
         (loadMore)="onLoadMoreTransactions()"
         (editTransaction)="onEditTransaction($event)"

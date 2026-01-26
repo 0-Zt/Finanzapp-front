@@ -1,10 +1,11 @@
 <section class="page-shell">
-  <!-- HEADER -->
-  <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-    <div>
+  <app-page-header [useRouteData]="false" [showBreadcrumbs]="activeView === 'cards'">
+    <div page-title>
       @if (activeView === 'cards') {
-        <h1 class="text-3xl font-semibold text-slate-900 dark:text-white">Tarjetas de crédito</h1>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+        <h1 class="text-heading-lg leading-tight text-text-primary dark:text-text-primary-dark sm:text-display-sm">
+          Tarjetas de crédito
+        </h1>
+        <p class="text-body-sm text-text-secondary dark:text-text-secondary-dark">
           Administra tus tarjetas y controla tus gastos.
         </p>
       } @else {
@@ -18,13 +19,16 @@
           </svg>
           Volver a tarjetas
         </button>
-        <h1 class="text-3xl font-semibold text-slate-900 dark:text-white">{{ selectedCard?.name }}</h1>
-        <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+        <h1 class="text-heading-lg leading-tight text-text-primary dark:text-text-primary-dark sm:text-display-sm">
+          {{ selectedCard?.name }}
+        </h1>
+        <p class="text-body-sm text-text-secondary dark:text-text-secondary-dark">
           {{ selectedCard?.bank_name }} {{ formatCardNumber(selectedCard?.last_four_digits) }}
         </p>
       }
     </div>
-    <div class="flex gap-2">
+
+    <div page-actions class="flex gap-2">
       @if (activeView === 'cards') {
         <button type="button" class="primary-button" (click)="onOpenCreateCard()">Nueva tarjeta</button>
       } @else {
@@ -32,7 +36,7 @@
         <button type="button" class="primary-button" (click)="onOpenCreateTransaction()">Nuevo gasto</button>
       }
     </div>
-  </header>
+  </app-page-header>
 
   <!-- LOADING -->
   @if (isLoading) {

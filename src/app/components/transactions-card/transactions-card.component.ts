@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Transaction, TransactionFilters } from '../../models/dashboard.models';
 import { ApiExpenseCategory } from '../../models/api.models';
 import { CategoryIconComponent } from '../category-icon/category-icon.component';
@@ -8,7 +9,7 @@ import { CategoryIconComponent } from '../category-icon/category-icon.component'
 @Component({
   selector: 'app-transactions-card',
   standalone: true,
-  imports: [CommonModule, FormsModule, CategoryIconComponent],
+  imports: [CommonModule, FormsModule, RouterLink, CategoryIconComponent],
   templateUrl: './transactions-card.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -28,6 +29,8 @@ export class TransactionsCardComponent {
   @Input() title = 'Movimientos recientes';
   @Input() description = 'Detalle de las últimas transacciones y categorías.';
   @Input() actionLabel = 'Ver todo';
+  @Input() actionLink: string | null = null;
+  @Input() actionQueryParams: Record<string, string | number | boolean> | null = null;
   @Output() filtersChange = new EventEmitter<TransactionFilters>();
   @Output() loadMore = new EventEmitter<void>();
   @Output() editTransaction = new EventEmitter<Transaction>();

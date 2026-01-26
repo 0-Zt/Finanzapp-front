@@ -1,12 +1,5 @@
 <section class="page-shell">
-  <header class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-    <div>
-      <h1 class="text-3xl font-semibold text-slate-900 dark:text-white">Ahorro e inversion</h1>
-      <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">
-        Registra compras de ETF, aportes y revisa recomendaciones.
-      </p>
-    </div>
-  </header>
+  <app-page-header></app-page-header>
 
   @if (isLoading) {
     <div class="rounded-2xl border border-slate-200/70 bg-white/70 px-5 py-4 text-sm text-slate-600 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/50 dark:text-slate-200">
@@ -126,5 +119,6 @@
     [title]="'Movimientos de ahorro'"
     [description]="'Historial de aportes e inversiones.'"
     [actionLabel]="'Ver todo'"
+    [actionLink]="'/transactions'"
   ></app-transactions-card>
 </section>

@@ -45,7 +45,11 @@
           <span class="text-caption font-semibold sm:text-subheading-sm">Ahorro e inversion</span>
           <span class="text-label-xs text-text-tertiary dark:text-text-tertiary-dark sm:text-caption">ETF y aportes</span>
         </a>
-        <a routerLink="/budgets" class="quick-link flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+        <a
+          routerLink="/profile"
+          [queryParams]="{ section: 'budgets' }"
+          class="quick-link flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
+        >
           <span class="text-caption font-semibold sm:text-subheading-sm">Presupuestos</span>
           <span class="text-label-xs text-text-tertiary dark:text-text-tertiary-dark sm:text-caption">Limites por categoria</span>
         </a>

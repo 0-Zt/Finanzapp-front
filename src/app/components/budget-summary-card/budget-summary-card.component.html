@@ -13,6 +13,7 @@
     </div>
     <a
       routerLink="/profile"
+      [queryParams]="{ section: 'budgets' }"
       class="filter-chip hover:bg-slate-100 dark:hover:bg-slate-700"
     >
       Ver todos
@@ -24,6 +25,7 @@
       <p>No hay presupuestos configurados.</p>
       <a
         routerLink="/profile"
+        [queryParams]="{ section: 'budgets' }"
         class="mt-2 inline-block text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300"
       >
         Configurar presupuestos

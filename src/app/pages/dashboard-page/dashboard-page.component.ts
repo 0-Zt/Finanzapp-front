@@ -513,6 +513,8 @@ export class DashboardPageComponent implements OnInit {
         label: bucket.label,
         income: maxValue ? Math.round((entry.income / maxValue) * 100) : 0,
         expense: maxValue ? Math.round((entry.expense / maxValue) * 100) : 0,
+        incomeValue: entry.income,
+        expenseValue: entry.expense,
       };
     });
   }
@@ -551,6 +553,8 @@ export class DashboardPageComponent implements OnInit {
         label: String(year),
         income: maxValue ? Math.round((entry.income / maxValue) * 100) : 0,
         expense: maxValue ? Math.round((entry.expense / maxValue) * 100) : 0,
+        incomeValue: entry.income,
+        expenseValue: entry.expense,
       };
     });
   }
