@@ -25,6 +25,18 @@
   ></app-transaction-dialog>
 
   <section id="reports" class="flex flex-col gap-4 sm:gap-6 lg:gap-8">
+    <header class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 class="text-heading-lg text-text-primary dark:text-text-primary-dark">Reportes e indicadores</h2>
+        <p class="text-body-sm text-text-secondary dark:text-text-secondary-dark">
+          Analiza ingresos, gastos y movimientos recientes.
+        </p>
+      </div>
+      <span class="badge-soft text-label-xs uppercase tracking-[0.15em]">
+        {{ reportPeriod === 'monthly' ? 'Vista mensual' : 'Vista anual' }}
+      </span>
+    </header>
+
     @if (isLoading) {
       <!-- Skeleton para el grafico -->
       <div class="glass-card">
@@ -93,109 +105,133 @@
     }
   </section>
 
-  <section class="grid gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-8">
-    @if (isLoading) {
-      <!-- Skeleton para categorias -->
-      <div class="glass-card">
-        <div class="flex flex-wrap items-start justify-between gap-6">
-          <div class="flex flex-col gap-2">
-            <div class="h-6 w-40 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
-            <div class="h-4 w-56 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
-          </div>
-        </div>
-        <div class="mt-6 grid gap-6 sm:grid-cols-[200px_1fr]">
-          <div class="mx-auto h-48 w-48 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700"></div>
-          <div class="flex flex-col gap-3">
-            @for (i of [1,2,3,4,5]; track i) {
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <div class="h-3 w-3 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700"></div>
-                  <div class="h-4 w-24 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
-                </div>
-                <div class="h-4 w-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
-              </div>
-            }
-          </div>
-        </div>
+  <section class="flex flex-col gap-4 sm:gap-6 lg:gap-8">
+    <header class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 class="text-heading-lg text-text-primary dark:text-text-primary-dark">Presupuestos y categorias</h2>
+        <p class="text-body-sm text-text-secondary dark:text-text-secondary-dark">
+          Seguimiento de limites, categorias y distribucion del gasto.
+        </p>
       </div>
-      <!-- Skeleton para presupuestos -->
-      <div class="glass-card">
-        <div class="flex flex-wrap items-start justify-between gap-6">
-          <div class="flex flex-col gap-2">
-            <div class="h-6 w-40 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
-            <div class="h-4 w-56 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
-          </div>
-        </div>
-        <div class="mt-6 space-y-4">
-          <div class="h-24 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-700"></div>
-          <div class="h-16 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-700"></div>
-        </div>
-      </div>
-    } @else {
-      <app-category-breakdown
-        [items]="categoryBreakdown"
-        [title]="reportPeriod === 'monthly' ? 'Categorias del mes' : 'Categorias del ano'"
-        [description]="
-          reportPeriod === 'monthly'
-            ? 'Distribución de gastos del mes actual.'
-            : 'Distribución de gastos del año actual.'
-        "
-      ></app-category-breakdown>
+      <span class="badge-soft text-label-xs uppercase tracking-[0.15em]">Periodo actual</span>
+    </header>
 
-      <app-budget-summary-card
-        [summary]="budgetSummary"
-      ></app-budget-summary-card>
-    }
+    <div class="grid gap-4 sm:gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:gap-8">
+      @if (isLoading) {
+        <!-- Skeleton para categorias -->
+        <div class="glass-card">
+          <div class="flex flex-wrap items-start justify-between gap-6">
+            <div class="flex flex-col gap-2">
+              <div class="h-6 w-40 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+              <div class="h-4 w-56 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+            </div>
+          </div>
+          <div class="mt-6 grid gap-6 sm:grid-cols-[200px_1fr]">
+            <div class="mx-auto h-48 w-48 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700"></div>
+            <div class="flex flex-col gap-3">
+              @for (i of [1,2,3,4,5]; track i) {
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="h-3 w-3 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                    <div class="h-4 w-24 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+                  </div>
+                  <div class="h-4 w-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+        <!-- Skeleton para presupuestos -->
+        <div class="glass-card">
+          <div class="flex flex-wrap items-start justify-between gap-6">
+            <div class="flex flex-col gap-2">
+              <div class="h-6 w-40 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+              <div class="h-4 w-56 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div>
+            </div>
+          </div>
+          <div class="mt-6 space-y-4">
+            <div class="h-24 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-700"></div>
+            <div class="h-16 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-700"></div>
+          </div>
+        </div>
+      } @else {
+        <app-category-breakdown
+          [items]="categoryBreakdown"
+          [title]="reportPeriod === 'monthly' ? 'Categorias del mes' : 'Categorias del ano'"
+          [description]="
+            reportPeriod === 'monthly'
+              ? 'Distribución de gastos del mes actual.'
+              : 'Distribución de gastos del año actual.'
+          "
+        ></app-category-breakdown>
+
+        <app-budget-summary-card
+          [summary]="budgetSummary"
+        ></app-budget-summary-card>
+      }
+    </div>
   </section>
 
   <!-- Credit Cards Section -->
-  <section class="grid gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-8">
-    <app-credit-cards-widget
-      [summary]="creditCardsSummary"
-      [isLoading]="isCreditCardsLoading"
-    ></app-credit-cards-widget>
-
-    <!-- Tips/Suggestions card -->
-    <article class="glass-card">
-      <header>
-        <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Consejos financieros</h2>
-        <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
-          Recomendaciones para mejorar tu salud financiera.
+  <section class="flex flex-col gap-4 sm:gap-6 lg:gap-8">
+    <header class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 class="text-heading-lg text-text-primary dark:text-text-primary-dark">Salud financiera</h2>
+        <p class="text-body-sm text-text-secondary dark:text-text-secondary-dark">
+          Tarjetas, vencimientos y recomendaciones para mejorar tu flujo.
         </p>
-      </header>
-      <ul class="mt-6 space-y-3">
-        <li class="flex items-start gap-3 rounded-xl bg-slate-50/80 p-3 dark:bg-slate-800/30">
-          <span class="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          </span>
-          <p class="text-sm text-slate-600 dark:text-slate-300">
-            Paga el total de tu tarjeta de crédito para evitar intereses.
+      </div>
+      <span class="badge-soft text-label-xs uppercase tracking-[0.15em]">Acciones sugeridas</span>
+    </header>
+
+    <div class="grid gap-4 sm:gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:gap-8">
+      <app-credit-cards-widget
+        [summary]="creditCardsSummary"
+        [isLoading]="isCreditCardsLoading"
+      ></app-credit-cards-widget>
+
+      <!-- Tips/Suggestions card -->
+      <article class="glass-card">
+        <header>
+          <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Consejos financieros</h2>
+          <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+            Recomendaciones para mejorar tu salud financiera.
           </p>
-        </li>
-        <li class="flex items-start gap-3 rounded-xl bg-slate-50/80 p-3 dark:bg-slate-800/30">
-          <span class="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          </span>
-          <p class="text-sm text-slate-600 dark:text-slate-300">
-            Mantén la utilización de crédito bajo el 30% de tu límite.
-          </p>
-        </li>
-        <li class="flex items-start gap-3 rounded-xl bg-slate-50/80 p-3 dark:bg-slate-800/30">
-          <span class="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-          </span>
-          <p class="text-sm text-slate-600 dark:text-slate-300">
-            Revisa tus gastos semanalmente para mantener el control.
-          </p>
-        </li>
-      </ul>
-    </article>
+        </header>
+        <ul class="mt-6 space-y-3">
+          <li class="flex items-start gap-3 rounded-xl bg-slate-50/80 p-3 dark:bg-slate-800/30">
+            <span class="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
+            <p class="text-sm text-slate-600 dark:text-slate-300">
+              Paga el total de tu tarjeta de crédito para evitar intereses.
+            </p>
+          </li>
+          <li class="flex items-start gap-3 rounded-xl bg-slate-50/80 p-3 dark:bg-slate-800/30">
+            <span class="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
+            <p class="text-sm text-slate-600 dark:text-slate-300">
+              Mantén la utilización de crédito bajo el 30% de tu límite.
+            </p>
+          </li>
+          <li class="flex items-start gap-3 rounded-xl bg-slate-50/80 p-3 dark:bg-slate-800/30">
+            <span class="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </span>
+            <p class="text-sm text-slate-600 dark:text-slate-300">
+              Revisa tus gastos semanalmente para mantener el control.
+            </p>
+          </li>
+        </ul>
+      </article>
+    </div>
   </section>
 </section>
 

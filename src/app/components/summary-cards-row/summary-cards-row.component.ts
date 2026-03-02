@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SummaryCard } from '../../models/dashboard.models';
+import { SummaryCard, AccentTone } from '../../models/dashboard.models';
 import { SkeletonCardComponent } from '../skeleton/skeleton-card.component';
 
 @Component({
@@ -16,16 +16,25 @@ export class SummaryCardsRowComponent {
 
   readonly skeletonItems = [1, 2, 3, 4, 5];
 
-  readonly accentClasses: Record<SummaryCard['accent'], string> = {
-    emerald: 'border-emerald-200/60 dark:border-emerald-500/30',
-    amber: 'border-amber-200/60 dark:border-amber-500/30',
-    violet: 'border-brand-200/60 dark:border-brand-500/30',
-    slate: 'border-slate-200/60 dark:border-slate-600/40',
-    blue: 'border-sky-200/60 dark:border-sky-500/30',
-    teal: 'border-teal-200/60 dark:border-teal-500/30',
+  readonly accentClasses: Record<AccentTone, string> = {
+    emerald: '!border-l-emerald-400 dark:!border-l-emerald-400',
+    amber: '!border-l-amber-400 dark:!border-l-amber-400',
+    violet: '!border-l-brand-400 dark:!border-l-brand-400',
+    slate: '!border-l-slate-400 dark:!border-l-slate-400',
+    blue: '!border-l-sky-400 dark:!border-l-sky-400',
+    teal: '!border-l-teal-400 dark:!border-l-teal-400',
   };
 
-  readonly iconClasses: Record<SummaryCard['accent'], string> = {
+  readonly glowClasses: Record<AccentTone, string> = {
+    emerald: 'bg-emerald-500/[0.03] dark:bg-emerald-500/[0.08]',
+    amber: 'bg-amber-500/[0.03] dark:bg-amber-500/[0.08]',
+    violet: 'bg-brand-500/[0.03] dark:bg-brand-500/[0.08]',
+    slate: 'bg-slate-500/[0.03] dark:bg-slate-500/[0.08]',
+    blue: 'bg-sky-500/[0.03] dark:bg-sky-500/[0.08]',
+    teal: 'bg-teal-500/[0.03] dark:bg-teal-500/[0.08]',
+  };
+
+  readonly iconClasses: Record<AccentTone, string> = {
     emerald: 'bg-emerald-500/15 text-emerald-600 dark:bg-emerald-400/20 dark:text-emerald-300',
     amber: 'bg-amber-500/15 text-amber-600 dark:bg-amber-400/20 dark:text-amber-300',
     violet: 'bg-brand-500/15 text-brand-600 dark:bg-brand-400/20 dark:text-brand-300',
@@ -35,7 +44,6 @@ export class SummaryCardsRowComponent {
   };
 
   trendClass(trend: SummaryCard['trend']): string {
-    // Enhanced colors for WCAG AA compliance and low-brightness visibility
     if (trend === 'down') {
       return 'text-red-600 dark:text-red-400';
     }

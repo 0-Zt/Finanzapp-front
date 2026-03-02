@@ -9,6 +9,7 @@ import {
   CreateFinancialGoalPayload,
   UpdateFinancialGoalPayload,
 } from '../../models/api.models';
+import { environment } from '../../../environments/environment';
 
 interface GoalFormState {
   title: string;
@@ -184,10 +185,34 @@ export class GoalsPageComponent implements OnInit {
   }
 
   private getTodayDate(): string {
-    return new Date().toISOString().slice(0, 10);
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: environment.defaultTimeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const parts = formatter.formatToParts(new Date());
+    const year = parts.find((part) => part.type === 'year')?.value ?? `${new Date().getUTCFullYear()}`;
+    const month = parts.find((part) => part.type === 'month')?.value ?? `${new Date().getUTCMonth() + 1}`.padStart(2, '0');
+    const day = parts.find((part) => part.type === 'day')?.value ?? `${new Date().getUTCDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   progress(goal: ApiFinancialGoal): number {
     return goal.target_amount ? Math.round((goal.current_amount / goal.target_amount) * 100) : 0;
+  }
+
+  progressColor(goal: ApiFinancialGoal): string {
+    const pct = this.progress(goal);
+    if (pct >= 75) return 'text-emerald-500 dark:text-emerald-400';
+    if (pct >= 40) return 'text-brand-500 dark:text-brand-400';
+    return 'text-amber-500 dark:text-amber-400';
+  }
+
+  progressBarColor(goal: ApiFinancialGoal): string {
+    const pct = this.progress(goal);
+    if (pct >= 75) return 'bg-emerald-400 dark:bg-emerald-400';
+    if (pct >= 40) return 'bg-brand-500 dark:bg-brand-400';
+    return 'bg-amber-400 dark:bg-amber-400';
   }
 }

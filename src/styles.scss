@@ -107,7 +107,7 @@
     @apply mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 pb-20 pt-8 sm:gap-8 sm:px-6 sm:pt-10 lg:px-8 lg:gap-10;
   }
 
-  /* Glass Card - enhanced border visibility */
+  /* Glass Card - enhanced glassmorphism with neon accents */
   .glass-card {
     @apply relative overflow-hidden rounded-2xl p-4 shadow-card-sm backdrop-blur-xl transition-all duration-300 ease-out sm:p-6;
     border: 1px solid var(--border-default);
@@ -121,6 +121,44 @@
 
   .glass-card:hover {
     @apply -translate-y-0.5 shadow-card-md;
+  }
+
+  /* Glass Card with colored glow on hover (dark mode) */
+  .glass-card-glow {
+    @apply glass-card;
+  }
+
+  .dark .glass-card-glow:hover {
+    border-color: rgba(13, 223, 242, 0.2);
+    box-shadow: 0 0 20px rgba(13, 223, 242, 0.08);
+  }
+
+  /* Neon glow utility for dark mode accent elements */
+  .neon-accent {
+    @apply transition-all duration-300;
+  }
+
+  .dark .neon-accent {
+    text-shadow: 0 0 10px rgba(13, 223, 242, 0.4);
+  }
+
+  /* Progress bar with neon glow in dark mode */
+  .progress-bar-neon {
+    @apply h-2 rounded-full transition-all duration-500 ease-out;
+  }
+
+  .dark .progress-bar-neon {
+    box-shadow: 0 0 8px rgba(13, 223, 242, 0.4);
+  }
+
+  /* Radial glow background overlay for dark mode */
+  .radial-glow-overlay {
+    @apply pointer-events-none fixed inset-0 z-0;
+    background: radial-gradient(circle at 50% 0%, rgba(13, 223, 242, 0.06) 0%, transparent 70%);
+  }
+
+  .dark .radial-glow-overlay {
+    background: radial-gradient(circle at 50% 0%, rgba(13, 223, 242, 0.1) 0%, transparent 70%);
   }
 
   /* Accent Pill - improved contrast */

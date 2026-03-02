@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -11,6 +11,7 @@ import { CategoryBudgetsService } from '../../services/category-budgets.service'
 import { CategoriesService } from '../../services/categories.service';
 import { TransactionsService } from '../../services/transactions.service';
 import { PageHeaderComponent } from '../../components/page-header/page-header.component';
+import { environment } from '../../../environments/environment';
 import { BudgetProgressBarComponent } from '../../components/budget-progress-bar/budget-progress-bar.component';
 import {
   UserProfile,
@@ -41,6 +42,7 @@ export interface ProfileMenuItem {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, BudgetProgressBarComponent, PageHeaderComponent],
   templateUrl: './profile-page.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfilePageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -91,7 +93,7 @@ export class ProfilePageComponent implements OnInit {
   isSavingProfile = false;
   isSavingExpense = false;
   isSavingBudget = false;
-  private readonly defaultTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  private readonly defaultTimeZone = environment.defaultTimeZone;
   private profileTimeZone = this.defaultTimeZone;
   selectedBudgetMonth = this.getCurrentMonth(this.defaultTimeZone);
 
@@ -574,7 +576,7 @@ export class ProfilePageComponent implements OnInit {
     const dueDate = this.buildFixedExpenseDueDate(input.dueDay);
     const amount = Math.abs(input.amount);
     return {
-      transaction_date: new Date(`${dueDate}T00:00:00`).toISOString(),
+      transaction_date: dueDate,
       description: input.description,
       category_id: input.categoryId ?? null,
       amount: amount * -1,

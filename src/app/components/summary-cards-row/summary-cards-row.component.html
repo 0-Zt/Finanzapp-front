@@ -6,11 +6,15 @@
   } @else {
     @for (card of cards; track card.title; let i = $index) {
       <article
-        class="glass-card flex h-full flex-col gap-3 p-3 animate-fade-up cursor-default hover:scale-[1.02] hover:shadow-card-md sm:gap-4 sm:p-5"
+        class="group glass-card relative flex h-full flex-col gap-3 overflow-hidden border-l-[3px] p-3 animate-fade-up cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-card-md sm:gap-4 sm:p-5"
         [ngClass]="accentClasses[card.accent]"
         [style.animation-delay.ms]="i * 80"
       >
-        <div class="flex flex-col gap-2 sm:gap-3">
+        <!-- Hover glow overlay -->
+        <div class="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          [ngClass]="glowClasses[card.accent]"></div>
+
+        <div class="relative z-10 flex flex-col gap-2 sm:gap-3">
           @if (card.tag) {
             <div class="flex justify-end">
               <span class="badge-soft text-label-xs uppercase tracking-wide whitespace-nowrap">
@@ -20,7 +24,7 @@
           }
           <div class="flex items-center gap-2 sm:gap-3">
             <span
-              class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-label-xs uppercase sm:h-10 sm:w-10 sm:rounded-2xl"
+              class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm sm:h-11 sm:w-11 sm:rounded-2xl"
               [ngClass]="iconClasses[card.accent]"
             >
               {{ card.title.slice(0, 2) }}
@@ -37,20 +41,33 @@
         </div>
 
         @if (card.delta) {
-          <div class="flex items-baseline gap-1.5 text-caption font-semibold sm:gap-2 sm:text-body-sm" [ngClass]="trendClass(card.trend)">
+          <div class="relative z-10 flex items-center gap-1.5 text-caption font-semibold sm:gap-2 sm:text-body-sm" [ngClass]="trendClass(card.trend)">
+            @if (card.trend === 'up') {
+              <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941" />
+              </svg>
+            } @else if (card.trend === 'down') {
+              <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6 9 12.75l4.286-4.286a11.948 11.948 0 0 1 5.573 5.573l2.75 1.26m0 0-5.94 2.281m5.94-2.28-2.28-5.941" />
+              </svg>
+            } @else {
+              <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
+              </svg>
+            }
             <span>{{ card.delta }}</span>
             <span class="font-medium text-text-secondary dark:text-text-secondary-dark hidden sm:inline">{{ card.deltaLabel }}</span>
           </div>
         }
 
-        <p class="text-caption leading-relaxed text-text-secondary dark:text-text-secondary-dark line-clamp-2 sm:text-body-sm sm:line-clamp-none">{{ card.description }}</p>
+        <p class="relative z-10 text-caption leading-relaxed text-text-secondary dark:text-text-secondary-dark line-clamp-2 sm:text-body-sm sm:line-clamp-none">{{ card.description }}</p>
 
         @if (card.items?.length) {
-          <ul class="hidden flex-col gap-2 pt-3 text-caption sm:flex sm:pt-4 sm:text-body-sm">
+          <ul class="relative z-10 hidden flex-col gap-2 border-t border-border-subtle pt-3 text-caption dark:border-border-subtle-dark sm:flex sm:pt-4 sm:text-body-sm">
             @for (item of card.items; track item.label) {
               <li class="flex items-center justify-between text-text-secondary dark:text-text-secondary-dark">
                 <span>{{ item.label }}</span>
-                <span class="font-semibold text-text-primary dark:text-text-primary-dark">{{ item.value }}</span>
+                <span class="font-semibold text-text-primary dark:text-text-primary-dark tabular-nums">{{ item.value }}</span>
               </li>
             }
           </ul>

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -15,6 +15,7 @@ import {
   CreateCardTransactionPayload,
   CreateCardPaymentPayload,
 } from '../../models/api.models';
+import { environment } from '../../../environments/environment';
 
 interface CardFormState {
   name: string;
@@ -53,6 +54,7 @@ type FormType = 'card' | 'transaction' | 'payment' | null;
   standalone: true,
   imports: [CommonModule, FormsModule, PageHeaderComponent],
   templateUrl: './credit-cards-page.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreditCardsPageComponent implements OnInit {
   private readonly creditCardsService = inject(CreditCardsService);
@@ -436,7 +438,17 @@ export class CreditCardsPageComponent implements OnInit {
   }
 
   private getTodayDate(): string {
-    return new Date().toISOString().slice(0, 10);
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: environment.defaultTimeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const parts = formatter.formatToParts(new Date());
+    const year = parts.find((part) => part.type === 'year')?.value ?? `${new Date().getUTCFullYear()}`;
+    const month = parts.find((part) => part.type === 'month')?.value ?? `${new Date().getUTCMonth() + 1}`.padStart(2, '0');
+    const day = parts.find((part) => part.type === 'day')?.value ?? `${new Date().getUTCDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   // ==================== HELPERS ====================

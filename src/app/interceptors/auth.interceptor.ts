@@ -7,6 +7,7 @@ import { AuthService } from '../services/auth.service';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
+  const retryHeader = 'x-refresh-retry';
 
   // Skip auth header for auth endpoints
   if (req.url.includes('/auth/')) {
@@ -25,7 +26,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      if (error.status === 401) {
+      if (error.status === 401 && !req.headers.has(retryHeader)) {
         // Try to refresh the token
         return authService.refreshToken().pipe(
           switchMap((response) => {
@@ -38,6 +39,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             const newReq = req.clone({
               setHeaders: {
                 Authorization: `Bearer ${response.accessToken}`,
+                [retryHeader]: '1',
               },
             });
             return next(newReq);
@@ -49,6 +51,11 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
             return throwError(() => refreshError);
           })
         );
+      }
+
+      if (error.status === 401) {
+        authService.signOut();
+        router.navigate(['/login']);
       }
       return throwError(() => error);
     })

@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -43,6 +43,7 @@ const TRANSACTION_PAGE_SIZE = 15;
     PageHeaderComponent,
   ],
   templateUrl: './transactions-page.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TransactionsPageComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);
@@ -369,7 +370,7 @@ export class TransactionsPageComponent implements OnInit {
     ]);
 
     for (const transaction of transactions) {
-      const transactionDate = new Date(transaction.rawDate);
+      const transactionDate = this.parseDateValue(transaction.rawDate);
       const dateKey = this.getDateKey(transactionDate);
 
       if (dateKey === today) {
@@ -457,7 +458,7 @@ export class TransactionsPageComponent implements OnInit {
     for (let offset = 0; offset < 12; offset += 1) {
       const date = new Date(now.getFullYear(), now.getMonth() - offset, 1);
       options.push({
-        value: this.getMonthKey(date.toISOString()),
+        value: this.getMonthKey(date),
         label: `${this.monthLabels[date.getMonth()]} ${date.getFullYear()}`,
       });
     }
@@ -471,7 +472,7 @@ export class TransactionsPageComponent implements OnInit {
   }
 
   private formatTransactionDate(date: string): string {
-    const value = new Date(date);
+    const value = this.parseDateValue(date);
     const datePart = new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'short' })
       .format(value)
       .replace('.', '');
@@ -484,8 +485,8 @@ export class TransactionsPageComponent implements OnInit {
     return `${datePart} - ${timePart}`;
   }
 
-  private getMonthKey(date: string): string {
-    const value = new Date(date);
+  private getMonthKey(date: string | Date): string {
+    const value = this.parseDateValue(date);
     const month = String(value.getMonth() + 1).padStart(2, '0');
     return `${value.getFullYear()}-${month}`;
   }
@@ -499,7 +500,7 @@ export class TransactionsPageComponent implements OnInit {
 
     // Inicializar todos los días con 0
     for (let d = new Date(thirtyDaysAgo); d <= now; d.setDate(d.getDate() + 1)) {
-      const key = d.toISOString().slice(0, 10);
+      const key = this.toDateKey(d);
       dailyTotals.set(key, 0);
     }
 
@@ -507,9 +508,9 @@ export class TransactionsPageComponent implements OnInit {
     transactions
       .filter((t) => t.amount < 0)
       .forEach((transaction) => {
-        const date = new Date(transaction.transaction_date);
+        const date = this.parseDateValue(transaction.transaction_date);
         if (date >= thirtyDaysAgo && date <= now) {
-          const key = date.toISOString().slice(0, 10);
+          const key = this.toDateKey(date);
           const current = dailyTotals.get(key) ?? 0;
           dailyTotals.set(key, current + Math.abs(transaction.amount));
         }
@@ -519,7 +520,7 @@ export class TransactionsPageComponent implements OnInit {
     return Array.from(dailyTotals.entries())
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, value]) => {
-        const d = new Date(date + 'T00:00:00');
+        const d = this.parseDateValue(date);
         return {
           date,
           label: `${d.getDate()} ${this.monthLabels[d.getMonth()]}`,
@@ -527,5 +528,25 @@ export class TransactionsPageComponent implements OnInit {
           type: 'expense' as const,
         };
       });
+  }
+
+  private toDateKey(date: Date): string {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private parseDateValue(date: string | Date): Date {
+    if (date instanceof Date) {
+      return date;
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      const [year, month, day] = date.split('-').map((value) => Number.parseInt(value, 10));
+      return new Date(year, month - 1, day, 12, 0, 0, 0);
+    }
+
+    return new Date(date);
   }
 }

@@ -1,24 +1,36 @@
 <section class="page-shell">
   <app-page-header>
     <div page-actions>
-      <button type="button" class="primary-button" (click)="onOpenCreate()">Nueva meta</button>
+      <button type="button" class="primary-button" (click)="onOpenCreate()">
+        <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Nueva meta
+      </button>
     </div>
   </app-page-header>
 
   @if (isLoading) {
-    <div class="rounded-2xl border border-slate-200/70 bg-white/70 px-5 py-4 text-sm text-slate-600 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/50 dark:text-slate-200">
+    <div class="flex items-center gap-3 rounded-2xl border border-slate-200/70 bg-white/70 px-5 py-4 text-sm text-slate-600 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/50 dark:text-slate-200">
+      <svg class="h-5 w-5 animate-spin text-brand-500" viewBox="0 0 24 24" fill="none">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
       Cargando metas...
     </div>
   }
 
   @if (errorMessage) {
-    <div class="rounded-2xl border border-rose-200/70 bg-rose-50/80 px-5 py-4 text-sm text-rose-700 shadow-sm dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
+    <div class="flex items-center gap-3 rounded-2xl border border-rose-200/70 bg-rose-50/80 px-5 py-4 text-sm text-rose-700 shadow-sm dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-200">
+      <svg class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
+      </svg>
       {{ errorMessage }}
     </div>
   }
 
   @if (isFormOpen) {
-    <section class="glass-card">
+    <section class="glass-card animate-scale-in">
       <header class="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 class="text-xl font-semibold text-slate-900 dark:text-white">
@@ -94,6 +106,47 @@
     </section>
   }
 
+  <!-- Global progress overview -->
+  @if (!isLoading && goals.length) {
+    <div class="glass-card animate-fade-up">
+      <div class="flex flex-col items-center gap-6 sm:flex-row sm:gap-8">
+        <!-- Circular Progress -->
+        <div class="relative flex-shrink-0">
+          <svg class="h-28 w-28 -rotate-90" viewBox="0 0 120 120">
+            <circle
+              cx="60" cy="60" r="52"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="8"
+              class="text-slate-200 dark:text-slate-800"
+            />
+            <circle
+              cx="60" cy="60" r="52"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="8"
+              stroke-linecap="round"
+              class="text-brand-500 dark:text-brand-400 transition-all duration-700 ease-out"
+              [attr.stroke-dasharray]="2 * 3.14159 * 52"
+              [attr.stroke-dashoffset]="2 * 3.14159 * 52 * (1 - totalProgress / 100)"
+            />
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <span class="text-2xl font-bold text-text-primary dark:text-text-primary-dark">{{ totalProgress }}%</span>
+            <span class="text-label-xs uppercase tracking-wide text-text-tertiary dark:text-text-tertiary-dark">Global</span>
+          </div>
+        </div>
+        <div class="flex flex-col gap-1 text-center sm:text-left">
+          <h2 class="text-heading font-semibold text-text-primary dark:text-text-primary-dark">Progreso general</h2>
+          <p class="text-body-sm text-text-secondary dark:text-text-secondary-dark">
+            Tienes {{ goals.length }} {{ goals.length === 1 ? 'meta activa' : 'metas activas' }}.
+            {{ totalProgress >= 75 ? 'Vas muy bien!' : totalProgress >= 50 ? 'Buen progreso, sigue asi.' : 'Cada aporte cuenta, no te detengas.' }}
+          </p>
+        </div>
+      </div>
+    </div>
+  }
+
   <section class="grid gap-6 md:grid-cols-[1.2fr_0.8fr]">
     <article class="glass-card">
       <header class="flex items-center justify-between">
@@ -103,45 +156,83 @@
             {{ goals.length ? 'Resumen de tus objetivos actuales.' : 'No hay metas registradas.' }}
           </p>
         </div>
-        <span class="filter-chip">{{ totalProgress }}% global</span>
       </header>
 
-      @if (!goals.length) {
-        <div class="mt-6 text-sm text-slate-500 dark:text-slate-300">
-          Crea una meta para empezar a medir tu avance.
+      @if (!goals.length && !isLoading) {
+        <div class="empty-state mt-6">
+          <div class="empty-state-icon">
+            <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 3v1.5M3 21v-6m0 0 2.77-.693a9 9 0 0 1 6.208.682l.108.054a9 9 0 0 0 6.086.71l3.114-.732a48.524 48.524 0 0 1-.005-10.499l-3.11.732a9 9 0 0 1-6.085-.711l-.108-.054a9 9 0 0 0-6.208-.682L3 4.5M3 15V4.5" />
+            </svg>
+          </div>
+          <p class="empty-state-text">Sin metas por ahora</p>
+          <p class="empty-state-hint">Crea una meta para empezar a medir tu avance.</p>
+          <button type="button" class="primary-button mt-4" (click)="onOpenCreate()">Crear primera meta</button>
         </div>
       } @else {
         <ul class="mt-6 flex flex-col gap-4">
-          @for (goal of goals; track goal.id) {
-            <li class="list-card">
-              <div class="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h3 class="text-base font-semibold text-slate-900 dark:text-white">{{ goal.title }}</h3>
-                  <p class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    Limite {{ goal.deadline }}
-                  </p>
+          @for (goal of goals; track goal.id; let i = $index) {
+            <li class="group list-card animate-fade-up overflow-hidden" [style.animation-delay.ms]="i * 60">
+              <div class="flex items-start gap-4">
+                <!-- Mini circular progress -->
+                <div class="relative flex-shrink-0 hidden sm:block">
+                  <svg class="h-14 w-14 -rotate-90" viewBox="0 0 56 56">
+                    <circle
+                      cx="28" cy="28" r="24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="4"
+                      class="text-slate-200 dark:text-slate-800"
+                    />
+                    <circle
+                      cx="28" cy="28" r="24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="4"
+                      stroke-linecap="round"
+                      class="transition-all duration-500 ease-out"
+                      [ngClass]="progressColor(goal)"
+                      [attr.stroke-dasharray]="2 * 3.14159 * 24"
+                      [attr.stroke-dashoffset]="2 * 3.14159 * 24 * (1 - progress(goal) / 100)"
+                    />
+                  </svg>
+                  <div class="absolute inset-0 flex items-center justify-center">
+                    <span class="text-label font-bold text-text-primary dark:text-text-primary-dark">{{ progress(goal) }}%</span>
+                  </div>
                 </div>
-                <div class="flex items-center gap-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
-                  <button type="button" class="hover:text-brand-600" (click)="onEdit(goal)">Editar</button>
-                  <span class="text-slate-300 dark:text-slate-700">|</span>
-                  <button type="button" class="text-rose-500 hover:text-rose-400" (click)="onDelete(goal)">
-                    Eliminar
-                  </button>
+
+                <div class="flex-1 min-w-0">
+                  <div class="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <h3 class="text-base font-semibold text-slate-900 dark:text-white">{{ goal.title }}</h3>
+                      <p class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                        </svg>
+                        Limite {{ goal.deadline }}
+                      </p>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs font-semibold opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                      <button type="button" class="rounded-lg px-2 py-1 text-text-tertiary transition-colors hover:bg-brand-50 hover:text-brand-600 dark:text-text-tertiary-dark dark:hover:bg-brand-500/10 dark:hover:text-brand-400" (click)="onEdit(goal)">Editar</button>
+                      <button type="button" class="rounded-lg px-2 py-1 text-text-tertiary transition-colors hover:bg-rose-50 hover:text-rose-500 dark:text-text-tertiary-dark dark:hover:bg-rose-500/10 dark:hover:text-rose-400" (click)="onDelete(goal)">Eliminar</button>
+                    </div>
+                  </div>
+                  <div class="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+                    <span class="text-slate-600 dark:text-slate-300 tabular-nums">
+                      {{ goal.current_amount | number: '1.0-0' }} / {{ goal.target_amount | number: '1.0-0' }}
+                    </span>
+                    <span class="text-sm font-semibold sm:hidden" [ngClass]="progressColor(goal)">
+                      {{ progress(goal) }}%
+                    </span>
+                  </div>
+                  <div class="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-800/80">
+                    <span
+                      class="block h-full rounded-full progress-bar-neon transition-all duration-500 ease-out"
+                      [ngClass]="progressBarColor(goal)"
+                      [style.width.%]="progress(goal)"
+                    ></span>
+                  </div>
                 </div>
-              </div>
-              <div class="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm">
-                <span class="text-slate-600 dark:text-slate-300">
-                  {{ goal.current_amount | number: '1.0-2' }} / {{ goal.target_amount | number: '1.0-2' }}
-                </span>
-                <span class="text-sm font-semibold text-slate-900 dark:text-white">
-                  {{ progress(goal) }}%
-                </span>
-              </div>
-              <div class="mt-2 h-2 w-full rounded-full bg-slate-200/80 dark:bg-slate-800/80">
-                <span
-                  class="block h-full rounded-full bg-emerald-400"
-                  [style.width.%]="progress(goal)"
-                ></span>
               </div>
             </li>
           }
@@ -149,26 +240,57 @@
       }
     </article>
 
-    <article class="glass-card">
-      <header class="flex items-center justify-between">
-        <div>
-          <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Sugerencias</h2>
-          <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
-            Ideas rápidas para acelerar tus metas.
-          </p>
-        </div>
-      </header>
-      <ul class="mt-6 flex flex-col gap-3 text-sm text-slate-600 dark:text-slate-300">
-        <li class="list-card text-sm text-slate-600 dark:text-slate-300">
-          Automatiza un aporte mensual para mantener constancia.
-        </li>
-        <li class="list-card text-sm text-slate-600 dark:text-slate-300">
-          Revisa tus metas cada trimestre y ajusta el objetivo.
-        </li>
-        <li class="list-card text-sm text-slate-600 dark:text-slate-300">
-          Separa una meta para imprevistos y otra para inversiones.
-        </li>
-      </ul>
-    </article>
+    <div class="flex flex-col gap-6">
+      <article class="glass-card">
+        <header class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-semibold text-slate-900 dark:text-white">Sugerencias</h2>
+            <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+              Ideas rapidas para acelerar tus metas.
+            </p>
+          </div>
+        </header>
+        <ul class="mt-6 flex flex-col gap-3">
+          <li class="list-card flex items-start gap-3">
+            <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-brand-500/10 text-brand-500 dark:bg-brand-400/15 dark:text-brand-400">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182" />
+              </svg>
+            </div>
+            <span class="text-sm text-slate-600 dark:text-slate-300">Automatiza un aporte mensual para mantener constancia.</span>
+          </li>
+          <li class="list-card flex items-start gap-3">
+            <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500 dark:bg-emerald-400/15 dark:text-emerald-400">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+              </svg>
+            </div>
+            <span class="text-sm text-slate-600 dark:text-slate-300">Revisa tus metas cada trimestre y ajusta el objetivo.</span>
+          </li>
+          <li class="list-card flex items-start gap-3">
+            <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500 dark:bg-amber-400/15 dark:text-amber-400">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+            </div>
+            <span class="text-sm text-slate-600 dark:text-slate-300">Separa una meta para imprevistos y otra para inversiones.</span>
+          </li>
+        </ul>
+      </article>
+
+      <!-- Add new goal card (dashed) -->
+      @if (!isFormOpen && !isLoading) {
+        <button
+          type="button"
+          (click)="onOpenCreate()"
+          class="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-300 px-6 py-8 text-slate-400 transition-all duration-200 hover:border-brand-400 hover:text-brand-500 dark:border-slate-700 dark:text-slate-600 dark:hover:border-brand-500 dark:hover:text-brand-400"
+        >
+          <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          <span class="text-sm font-medium">Crear nueva meta</span>
+        </button>
+      }
+    </div>
   </section>
 </section>

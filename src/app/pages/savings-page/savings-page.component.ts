@@ -13,6 +13,7 @@ import {
 } from '../../models/api.models';
 import { TransactionsCardComponent } from '../../components/transactions-card/transactions-card.component';
 import { Transaction } from '../../models/dashboard.models';
+import { environment } from '../../../environments/environment';
 
 const TRANSACTION_FETCH_LIMIT = 200;
 
@@ -63,7 +64,7 @@ export class SavingsPageComponent implements OnInit {
     const note = this.formState.note ? ` - ${this.formState.note.trim()}` : '';
 
     const payload: CreateTransactionPayload = {
-      transaction_date: new Date(`${this.formState.date}T00:00:00`).toISOString(),
+      transaction_date: this.formState.date,
       description: `${label} ${etfLabel}${note}`,
       category_id: this.savingsCategory.id,
       amount: this.formState.amount * -1,
@@ -166,7 +167,17 @@ export class SavingsPageComponent implements OnInit {
   }
 
   private getTodayDate(): string {
-    return new Date().toISOString().slice(0, 10);
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: environment.defaultTimeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const parts = formatter.formatToParts(new Date());
+    const year = parts.find((part) => part.type === 'year')?.value ?? `${new Date().getUTCFullYear()}`;
+    const month = parts.find((part) => part.type === 'month')?.value ?? `${new Date().getUTCMonth() + 1}`.padStart(2, '0');
+    const day = parts.find((part) => part.type === 'day')?.value ?? `${new Date().getUTCDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   private formatAmount(amount: number): string {

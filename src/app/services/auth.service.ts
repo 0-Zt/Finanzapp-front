@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, tap, catchError, throwError, of } from 'rxjs';
+import { BehaviorSubject, Observable, catchError, finalize, shareReplay, tap, throwError } from 'rxjs';
 import { API_BASE_URL } from './api.config';
 
 export interface AuthUser {
@@ -36,7 +36,7 @@ const USER_KEY = 'finanzapp_user';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly currentUserSubject = new BehaviorSubject<AuthUser | null>(this.loadStoredUser());
-  private isRefreshing = false;
+  private refreshRequest$?: Observable<AuthResponse>;
 
   readonly currentUser$ = this.currentUserSubject.asObservable();
 
@@ -75,22 +75,29 @@ export class AuthService {
 
   refreshToken(): Observable<AuthResponse> {
     const refreshToken = this.getRefreshToken();
-    if (!refreshToken || this.isRefreshing) {
+    if (!refreshToken) {
       return throwError(() => new Error('No refresh token available'));
     }
 
-    this.isRefreshing = true;
-    return this.http.post<AuthResponse>(`${API_BASE_URL}/auth/refresh`, { refreshToken }).pipe(
+    if (this.refreshRequest$) {
+      return this.refreshRequest$;
+    }
+
+    this.refreshRequest$ = this.http.post<AuthResponse>(`${API_BASE_URL}/auth/refresh`, { refreshToken }).pipe(
       tap((response) => {
         this.handleAuthSuccess(response);
-        this.isRefreshing = false;
       }),
       catchError((error) => {
-        this.isRefreshing = false;
         this.signOut();
         return throwError(() => error);
-      })
+      }),
+      finalize(() => {
+        this.refreshRequest$ = undefined;
+      }),
+      shareReplay(1),
     );
+
+    return this.refreshRequest$;
   }
 
   getAccessToken(): string | null {

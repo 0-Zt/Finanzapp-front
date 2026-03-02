@@ -7,6 +7,7 @@ import {
   CreateTransactionPayload,
   UpdateTransactionPayload,
 } from '../../models/api.models';
+import { environment } from '../../../environments/environment';
 
 type TransactionType = 'income' | 'expense';
 
@@ -70,7 +71,7 @@ export class TransactionFormComponent implements OnChanges {
 
     if (this.mode === 'edit' && this.transaction) {
       const payload: UpdateTransactionPayload = {
-        transaction_date: this.toIsoDate(this.formState.date),
+        transaction_date: this.toDateValue(this.formState.date),
         description: this.formState.description.trim(),
         category_id: this.formState.categoryId,
         amount: signedAmount,
@@ -80,7 +81,7 @@ export class TransactionFormComponent implements OnChanges {
       this.updateTransaction.emit({ id: this.transaction.id, payload });
     } else {
       const payload: CreateTransactionPayload = {
-        transaction_date: this.toIsoDate(this.formState.date),
+        transaction_date: this.toDateValue(this.formState.date),
         description: this.formState.description.trim(),
         category_id: this.formState.categoryId,
         amount: signedAmount,
@@ -108,10 +109,20 @@ export class TransactionFormComponent implements OnChanges {
   }
 
   private getTodayDate(): string {
-    return new Date().toISOString().slice(0, 10);
+    const formatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: environment.defaultTimeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const parts = formatter.formatToParts(new Date());
+    const year = parts.find((part) => part.type === 'year')?.value ?? `${new Date().getUTCFullYear()}`;
+    const month = parts.find((part) => part.type === 'month')?.value ?? `${new Date().getUTCMonth() + 1}`.padStart(2, '0');
+    const day = parts.find((part) => part.type === 'day')?.value ?? `${new Date().getUTCDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
-  private toIsoDate(date: string): string {
-    return new Date(`${date}T00:00:00`).toISOString();
+  private toDateValue(date: string): string {
+    return date.slice(0, 10);
   }
 }

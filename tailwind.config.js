@@ -90,9 +90,17 @@ module.exports = {
       boxShadow: {
         glass: '0 18px 45px -36px rgba(15, 23, 42, 0.45)',
         'neon-card': '0 16px 36px -30px rgba(37, 99, 235, 0.35)',
+        'neon-glow': '0 0 15px rgba(13, 223, 242, 0.3)',
+        'neon-glow-lg': '0 0 25px rgba(13, 223, 242, 0.4)',
         // Enhanced card shadows for better depth perception
         'card-sm': '0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04)',
         'card-md': '0 4px 12px rgba(15, 23, 42, 0.1), 0 2px 4px rgba(15, 23, 42, 0.05)',
+        'card-lg': '0 8px 24px rgba(15, 23, 42, 0.12), 0 4px 8px rgba(15, 23, 42, 0.06)',
+        // Colored glow shadows
+        'glow-emerald': '0 0 15px rgba(52, 211, 153, 0.3)',
+        'glow-rose': '0 0 15px rgba(244, 63, 94, 0.3)',
+        'glow-cyan': '0 0 15px rgba(13, 223, 242, 0.3)',
+        'glow-purple': '0 0 15px rgba(168, 85, 247, 0.3)',
       },
       // Typography scale (consistent hierarchy)
       fontSize: {

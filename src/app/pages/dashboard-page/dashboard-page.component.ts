@@ -489,7 +489,7 @@ export class DashboardPageComponent implements OnInit {
     });
 
     transactions.forEach((transaction) => {
-      const date = new Date(transaction.transaction_date);
+      const date = this.parseDateValue(transaction.transaction_date);
       const key = `${date.getFullYear()}-${date.getMonth()}`;
       const entry = totals.get(key);
       if (!entry) {
@@ -529,7 +529,7 @@ export class DashboardPageComponent implements OnInit {
     });
 
     transactions.forEach((transaction) => {
-      const date = new Date(transaction.transaction_date);
+      const date = this.parseDateValue(transaction.transaction_date);
       const year = date.getFullYear();
       const entry = totals.get(year);
       if (!entry) {
@@ -579,7 +579,7 @@ export class DashboardPageComponent implements OnInit {
     for (let offset = 0; offset < 12; offset += 1) {
       const date = new Date(now.getFullYear(), now.getMonth() - offset, 1);
       options.push({
-        value: this.getMonthKey(date.toISOString()),
+        value: this.getMonthKey(date),
         label: `${this.monthLabels[date.getMonth()]} ${date.getFullYear()}`,
       });
     }
@@ -607,7 +607,7 @@ export class DashboardPageComponent implements OnInit {
         const absAmount = Math.abs(transaction.amount);
         expense += absAmount;
 
-        const transactionDate = new Date(transaction.transaction_date);
+        const transactionDate = this.parseDateValue(transaction.transaction_date);
         if (transactionDate.getFullYear() === now.getFullYear() && transactionDate.getMonth() === now.getMonth()) {
           monthlyExpense += absAmount;
         }
@@ -651,7 +651,7 @@ export class DashboardPageComponent implements OnInit {
         return;
       }
 
-      const date = new Date(transaction.transaction_date);
+      const date = this.parseDateValue(transaction.transaction_date);
       if (date.getFullYear() !== now.getFullYear() || date.getMonth() !== now.getMonth()) {
         return;
       }
@@ -695,7 +695,7 @@ export class DashboardPageComponent implements OnInit {
         return;
       }
 
-      const date = new Date(transaction.transaction_date);
+      const date = this.parseDateValue(transaction.transaction_date);
       if (period === 'monthly') {
         if (date.getFullYear() !== now.getFullYear() || date.getMonth() !== now.getMonth()) {
           return;
@@ -736,7 +736,7 @@ export class DashboardPageComponent implements OnInit {
   private getLargestMonthlyTransaction(transactions: ApiTransaction[]): ApiTransaction | null {
     const now = new Date();
     const monthly = transactions.filter((transaction) => {
-      const date = new Date(transaction.transaction_date);
+      const date = this.parseDateValue(transaction.transaction_date);
       return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
     });
 
@@ -761,7 +761,7 @@ export class DashboardPageComponent implements OnInit {
     }
 
     return upcomingPayments
-      .map((payment) => ({ ...payment, date: new Date(payment.payment_date) }))
+      .map((payment) => ({ ...payment, date: this.parseDateValue(payment.payment_date) }))
       .sort((a, b) => a.date.getTime() - b.date.getTime())[0];
   }
 
@@ -803,10 +803,10 @@ export class DashboardPageComponent implements OnInit {
     }
 
     const latest = transactions
-      .map((transaction) => new Date(transaction.transaction_date))
+      .map((transaction) => this.parseDateValue(transaction.transaction_date))
       .sort((a, b) => b.getTime() - a.getTime())[0];
 
-    return this.formatDateOnly(latest.toISOString());
+    return this.formatDateOnly(latest);
   }
 
   private formatAmount(amount: number): string {
@@ -815,7 +815,7 @@ export class DashboardPageComponent implements OnInit {
   }
 
   private formatTransactionDate(date: string): string {
-    const value = new Date(date);
+    const value = this.parseDateValue(date);
     const datePart = new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: 'short' })
       .format(value)
       .replace('.', '');
@@ -828,8 +828,8 @@ export class DashboardPageComponent implements OnInit {
     return `${datePart} - ${timePart}`;
   }
 
-  private formatDateOnly(date: string): string {
-    const value = new Date(date);
+  private formatDateOnly(date: string | Date): string {
+    const value = this.parseDateValue(date);
     return new Intl.DateTimeFormat('es-CL', {
       day: '2-digit',
       month: 'short',
@@ -838,9 +838,22 @@ export class DashboardPageComponent implements OnInit {
       .replace('.', '');
   }
 
-  private getMonthKey(date: string): string {
-    const value = new Date(date);
+  private getMonthKey(date: string | Date): string {
+    const value = this.parseDateValue(date);
     const month = String(value.getMonth() + 1).padStart(2, '0');
     return `${value.getFullYear()}-${month}`;
+  }
+
+  private parseDateValue(date: string | Date): Date {
+    if (date instanceof Date) {
+      return date;
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      const [year, month, day] = date.split('-').map((value) => Number.parseInt(value, 10));
+      return new Date(year, month - 1, day, 12, 0, 0, 0);
+    }
+
+    return new Date(date);
   }
 }

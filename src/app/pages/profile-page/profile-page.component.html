@@ -56,7 +56,7 @@
                   (click)="setActiveSection(item.id)"
                   class="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left transition-all duration-200"
                   [ngClass]="{
-                    'bg-brand-600 shadow-md dark:bg-brand-500': activeSection === item.id,
+                    'bg-gradient-to-r from-brand-600 to-brand-500 shadow-md shadow-brand-600/20 dark:from-brand-500 dark:to-brand-400': activeSection === item.id,
                     'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/60': activeSection !== item.id
                   }"
                 >
@@ -96,7 +96,7 @@
                   id="fullName"
                   formControlName="fullName"
                   placeholder="Tu nombre"
-                  class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
+                  class="input-field"
                 />
               </div>
 
@@ -110,7 +110,7 @@
                     id="monthlySalary"
                     formControlName="monthlySalary"
                     placeholder="0"
-                    class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
+                    class="input-field"
                   />
                 </div>
 
@@ -124,7 +124,7 @@
                     formControlName="salaryDay"
                     min="1"
                     max="31"
-                    class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
+                    class="input-field"
                   />
                 </div>
               </div>
@@ -138,7 +138,7 @@
                   id="timezone"
                   formControlName="timezone"
                   placeholder="America/Santiago"
-                  class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
+                  class="input-field"
                 />
                 <span class="text-xs text-slate-500 dark:text-slate-400">
                   Usa el formato IANA (ej: America/Santiago)
@@ -156,7 +156,7 @@
                     formControlName="budgetWarningThreshold"
                     min="0"
                     max="100"
-                    class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
+                    class="input-field"
                   />
                 </div>
                 <div class="flex flex-col gap-2">
@@ -169,7 +169,7 @@
                     formControlName="budgetExceededThreshold"
                     min="0"
                     max="100"
-                    class="w-full rounded-xl border border-slate-200/70 bg-white/50 px-4 py-3 text-sm text-slate-900 placeholder-slate-400 outline-none transition-all duration-200 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:placeholder-slate-500 dark:focus:border-brand-400"
+                    class="input-field"
                   />
                 </div>
               </div>

@@ -1,5 +1,3 @@
+import { environment } from '../../environments/environment';
 
-export const API_BASE_URL = 'https://api-finanzapp.0zt.dev/'; 
-
-//'https://finanzapp-backend-77hj.onrender.com'
-// http://localhost:3000
+export const API_BASE_URL = environment.apiBaseUrl.replace(/\/+$/, '');
