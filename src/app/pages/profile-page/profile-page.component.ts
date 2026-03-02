@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -42,7 +42,6 @@ export interface ProfileMenuItem {
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, BudgetProgressBarComponent, PageHeaderComponent],
   templateUrl: './profile-page.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfilePageComponent implements OnInit {
   private readonly fb = inject(FormBuilder);

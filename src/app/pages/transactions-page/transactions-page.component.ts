@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -43,7 +43,6 @@ const TRANSACTION_PAGE_SIZE = 15;
     PageHeaderComponent,
   ],
   templateUrl: './transactions-page.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TransactionsPageComponent implements OnInit {
   private readonly dashboardService = inject(DashboardService);

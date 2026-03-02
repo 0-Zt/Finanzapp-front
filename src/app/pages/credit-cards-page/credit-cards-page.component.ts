@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -54,7 +54,6 @@ type FormType = 'card' | 'transaction' | 'payment' | null;
   standalone: true,
   imports: [CommonModule, FormsModule, PageHeaderComponent],
   templateUrl: './credit-cards-page.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreditCardsPageComponent implements OnInit {
   private readonly creditCardsService = inject(CreditCardsService);
