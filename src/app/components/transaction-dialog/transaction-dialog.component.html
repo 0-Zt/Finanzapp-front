@@ -73,6 +73,30 @@
       </label>
     </div>
 
+    @if (isCreditCardCategory) {
+      <div class="rounded-lg border border-indigo-200 bg-indigo-50 p-3 dark:border-indigo-800 dark:bg-indigo-950/40">
+        <div class="mb-2 flex items-center gap-2 text-xs font-medium text-indigo-700 dark:text-indigo-300">
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+          Gasto con tarjeta de crédito
+        </div>
+        <label class="flex flex-col gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
+          Cuotas
+          <select
+            name="installments"
+            [(ngModel)]="formState.installments"
+            class="select-field"
+          >
+            <option [ngValue]="1">Sin cuotas (1 pago)</option>
+            @for (n of [2,3,4,5,6,9,10,12,18,24,36,48]; track n) {
+              <option [ngValue]="n">{{ n }} cuotas</option>
+            }
+          </select>
+        </label>
+      </div>
+    }
+
     <div class="flex flex-wrap gap-3 pt-4">
       <button type="submit" class="primary-button flex-1 sm:flex-none">
         {{ submitLabel }}

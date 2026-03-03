@@ -7,6 +7,8 @@ export interface ApiTransaction {
   amount: number;
   status: string;
   account?: string | null;
+  credit_card_transaction_id?: number | null;
+  installments?: number | null;
 }
 
 export interface ApiExpenseCategory {
@@ -16,6 +18,7 @@ export interface ApiExpenseCategory {
   icon: string;
   icon_color: string;
   is_default?: boolean | null;
+  credit_card_id?: number | null;
 }
 
 export interface ApiUpcomingPayment {
@@ -95,6 +98,7 @@ export interface CreateTransactionPayload {
   amount: number;
   status: string;
   account?: string | null;
+  installments?: number;
 }
 
 export interface UpdateTransactionPayload {

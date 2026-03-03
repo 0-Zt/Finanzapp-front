@@ -25,6 +25,7 @@ interface TransactionFormState {
   date: string;
   categoryId: number | null;
   type: TransactionType;
+  installments: number;
 }
 
 @Component({
@@ -59,6 +60,13 @@ export class TransactionDialogComponent implements OnChanges {
     return this.mode === 'edit' ? 'Guardar cambios' : 'Guardar';
   }
 
+  /** Indica si la categoría seleccionada está vinculada a una tarjeta de crédito */
+  get isCreditCardCategory(): boolean {
+    if (!this.formState.categoryId) return false;
+    const category = this.categories.find(c => c.id === this.formState.categoryId);
+    return !!category?.credit_card_id;
+  }
+
   ngOnChanges(): void {
     if (this.transaction) {
       this.formState = {
@@ -67,6 +75,7 @@ export class TransactionDialogComponent implements OnChanges {
         date: this.transaction.transaction_date.slice(0, 10),
         categoryId: this.transaction.category_id ?? null,
         type: this.transaction.amount < 0 ? 'expense' : 'income',
+        installments: this.transaction.installments ?? 1,
       };
       return;
     }
@@ -110,6 +119,11 @@ export class TransactionDialogComponent implements OnChanges {
         status: 'completed',
       };
 
+      // Incluir cuotas si es categoría de tarjeta de crédito
+      if (this.isCreditCardCategory && this.formState.installments > 1) {
+        payload.installments = this.formState.installments;
+      }
+
       this.createTransaction.emit(payload);
     }
 
@@ -127,6 +141,7 @@ export class TransactionDialogComponent implements OnChanges {
       date: this.getTodayDate(),
       categoryId,
       type: 'expense',
+      installments: 1,
     };
   }
 
